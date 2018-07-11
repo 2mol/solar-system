@@ -65,6 +65,7 @@ type Msg
     = Nope
     | Tick Float
     | ToggleRunState
+    | PerturbVelocity
     | Zoom Int
 
 
@@ -127,10 +128,22 @@ update msg ({ runState, earth, moon, trail, projection } as model) =
         ToggleRunState ->
             ( { model | runState = toggleRunState runState }, Cmd.none )
 
+        PerturbVelocity ->
+            let
+                velocity_ =
+                    Vector3d.sum
+                        moon.velocity
+                        (Vector3d.fromComponents ( 50, 50, 0 ))
+
+                moon_ =
+                    { moon | velocity = velocity_ }
+            in
+            ( { model | moon = moon_ }, Cmd.none )
+
         Zoom i ->
             let
                 i_ =
-                    toFloat i
+                    toFloat i |> negate
 
                 scale_ =
                     (projection.scale + (i_ * projection.scale * 1.0e-3))
@@ -175,6 +188,7 @@ controlPane { earth, moon, dt, projection } =
     in
     Html.div []
         [ Html.button [ onClick ToggleRunState ] [ Html.text "play/pause" ]
+        , Html.button [ onClick PerturbVelocity ] [ Html.text "bother" ]
         , Html.table [ HtmlA.style [ ( "border", "1px solid black" ), ( "width", "100%" ), ( "table-layout", "fixed" ) ] ]
             [ Html.tr []
                 [ Html.td [ tdStyleLeft ] [ Html.text "fps" ]

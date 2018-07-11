@@ -29,9 +29,10 @@ main =
 type alias Model =
     { sun : Body
     , planets : List Body
-    , runState : RunState
     , projection : Projection
-    , dt : Float
+    , runState : RunState
+    , timeElapsed : Float
+    , frameTime : Float
     }
 
 
@@ -82,7 +83,8 @@ initModel =
         , scale = 2.0e-9
         }
     , runState = Paused
-    , dt = 0
+    , timeElapsed = 0
+    , frameTime = 0
     }
 
 
@@ -140,7 +142,7 @@ update msg ({ runState, sun, planets, projection } as model) =
                 planets_ =
                     List.map repeatedEuler planets
             in
-            ( { model | planets = planets_, dt = dt }, Cmd.none )
+            ( { model | planets = planets_, frameTime = dt }, Cmd.none )
 
         ToggleRunState ->
             ( { model | runState = toggleRunState runState }, Cmd.none )
@@ -183,26 +185,23 @@ subscriptions { runState } =
 
 
 controlPane : Model -> Html Msg
-controlPane { sun, planets, dt, projection } =
+controlPane { sun, planets, frameTime, projection } =
     Html.div []
         [ Html.button [ onClick ToggleRunState ] [ Html.text "play/pause" ]
         , Html.table [ HtmlA.style [ ( "border", "1px solid black" ), ( "width", "100%" ), ( "table-layout", "fixed" ) ] ]
             [ Html.tr []
                 [ Html.td [ tdStyleLeft ] [ Html.text "fps" ]
-                , Html.td [ tdStyleRight ] [ Html.text <| Round.round 2 (1000 / dt) ]
+                , Html.td [ tdStyleRight ] [ Html.text <| Round.round 2 (1000 / frameTime) ]
                 ]
             , Html.tr []
                 [ Html.td [ tdStyleLeft ] [ Html.text "scale" ]
                 , Html.td [ tdStyleRight ] [ Html.text <| Round.round 10 projection.scale ]
                 ]
-            , Html.tr []
-                [ Html.td [ tdStyleLeft ] [ Html.text "eccentricity" ]
-                , Html.td [ tdStyleRight ] [ Html.text "" ]
-                ]
             ]
         ]
 
 
+paneStyle : Html.Attribute msg
 paneStyle =
     HtmlA.style
         [ ( "flex", "1" )
@@ -212,25 +211,14 @@ paneStyle =
         ]
 
 
+tdStyleLeft : Html.Attribute msg
 tdStyleLeft =
     HtmlA.style [ ( "width", "80px" ), ( "word-wrap", "break-word" ) ]
 
 
+tdStyleRight : Html.Attribute msg
 tdStyleRight =
     HtmlA.style [ ( "width", "120px" ), ( "word-wrap", "break-word" ) ]
-
-
-
--- roundHelper : number -> Float -> String
--- roundHelper decimals num =
---     let
---         scale =
---             10 ^ decimals
---     in
---     (num * scale)
---         |> (round >> toFloat)
---         |> (\n -> n / scale)
---         |> FormatNumber.format { usLocale | decimals = decimals }
 
 
 toggleRunState : RunState -> RunState
@@ -317,20 +305,6 @@ potentialEnergy body1 body2 =
             Point3d.distanceFrom body1.position body2.position
     in
     -constGmod * body1.mass * body2.mass / (2 * r)
-
-
-
--- gravitationalPotential :
---     { a | mass : Mass, position : Point3d }
---     -> { b | position : Point3d }
---     -> Float
--- gravitationalPotential thing body =
---     let
---         r =
---             Point3d.distanceFrom thing.position body.position
---     in
---     thing.mass / r
---
 
 
 drawing : Model -> Html Msg
