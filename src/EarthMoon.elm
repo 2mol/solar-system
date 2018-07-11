@@ -7,6 +7,7 @@ import Html exposing (Html)
 import Html.Attributes as HtmlA
 import Html.Events exposing (on, onClick)
 import Json.Decode as Json
+import Plane3d
 import Point2d exposing (Point2d)
 import Point3d exposing (Point3d)
 import Round
@@ -65,7 +66,7 @@ type Msg
     = Nope
     | Tick Float
     | ToggleRunState
-    | PerturbVelocity
+    | Perturb Perturbation
     | Zoom Int
 
 
@@ -128,17 +129,8 @@ update msg ({ runState, earth, moon, trail, projection } as model) =
         ToggleRunState ->
             ( { model | runState = toggleRunState runState }, Cmd.none )
 
-        PerturbVelocity ->
-            let
-                velocity_ =
-                    Vector3d.sum
-                        moon.velocity
-                        (Vector3d.fromComponents ( 50, 50, 0 ))
-
-                moon_ =
-                    { moon | velocity = velocity_ }
-            in
-            ( { model | moon = moon_ }, Cmd.none )
+        Perturb pert ->
+            ( { model | moon = annoy pert moon }, Cmd.none )
 
         Zoom i ->
             let
@@ -174,6 +166,33 @@ subscriptions { runState } =
 
 
 
+--
+
+
+type Perturbation
+    = Brake
+    | Faster
+    | Bother
+
+
+annoy perturbation thing =
+    case perturbation of
+        Bother ->
+            let
+                velocity_ =
+                    thing.velocity
+                        |> Vector3d.sum (Vector3d.fromComponents ( 70, -50, 20 ))
+            in
+            { thing | velocity = velocity_ }
+
+        Brake ->
+            { thing | velocity = Vector3d.scaleBy 0.8 thing.velocity }
+
+        Faster ->
+            { thing | velocity = Vector3d.scaleBy 1.2 thing.velocity }
+
+
+
 -- subviews
 
 
@@ -188,7 +207,9 @@ controlPane { earth, moon, dt, projection } =
     in
     Html.div []
         [ Html.button [ onClick ToggleRunState ] [ Html.text "play/pause" ]
-        , Html.button [ onClick PerturbVelocity ] [ Html.text "bother" ]
+        , Html.button [ onClick <| Perturb Bother ] [ Html.text "bother" ]
+        , Html.button [ onClick <| Perturb Brake ] [ Html.text "brake" ]
+        , Html.button [ onClick <| Perturb Faster ] [ Html.text "faster" ]
         , Html.table [ HtmlA.style [ ( "border", "1px solid black" ), ( "width", "100%" ), ( "table-layout", "fixed" ) ] ]
             [ Html.tr []
                 [ Html.td [ tdStyleLeft ] [ Html.text "fps" ]
@@ -196,7 +217,7 @@ controlPane { earth, moon, dt, projection } =
                 ]
             , Html.tr []
                 [ Html.td [ tdStyleLeft ] [ Html.text "scale" ]
-                , Html.td [ tdStyleRight ] [ Html.text <| Round.round 8 projection.scale ]
+                , Html.td [ tdStyleRight ] [ Html.text <| Round.round 10 projection.scale ]
                 ]
             , Html.tr []
                 [ Html.td [ tdStyleLeft ] [ Html.text "eccentricity" ]
