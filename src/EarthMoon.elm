@@ -7,7 +7,6 @@ import Html exposing (Html)
 import Html.Attributes as HtmlA
 import Html.Events exposing (on, onClick)
 import Json.Decode as Json
-import Plane3d
 import Point2d exposing (Point2d)
 import Point3d exposing (Point3d)
 import Round
