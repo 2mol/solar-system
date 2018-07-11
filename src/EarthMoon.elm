@@ -1,4 +1,4 @@
-module Sup exposing (main)
+module EarthMoon exposing (main)
 
 import AnimationFrame
 import Circle2d

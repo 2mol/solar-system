@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html><head><meta charset="UTF-8"><title>Sup</title><style>html,head,body { padding:0; margin:0; }
+<html><head><meta charset="UTF-8"><title>EarthMoon</title><style>html,head,body { padding:0; margin:0; }
 body { font-family: calibri, helvetica, arial, sans-serif; }</style><script type="text/javascript">
 (function() {
 'use strict';
@@ -18506,7 +18506,7 @@ var _myrho$elm_round$Round$roundCom = _myrho$elm_round$Round$roundFun(
 		return (_elm_lang$core$Native_Utils.cmp(dec, 0.5) > -1) ? _elm_lang$core$Basics$ceiling(fl) : ((_elm_lang$core$Native_Utils.cmp(dec, -0.5) < 1) ? _elm_lang$core$Basics$floor(fl) : _elm_lang$core$Basics$round(fl));
 	});
 var _myrho$elm_round$Round$roundNumCom = _myrho$elm_round$Round$funNum(_myrho$elm_round$Round$roundCom);
-var _user$project$Sup$drawTrail = F2(
+var _user$project$EarthMoon$drawTrail = F2(
 	function (_p0, position) {
 		var _p1 = _p0;
 		var scaledPosition = A3(
@@ -18530,7 +18530,7 @@ var _user$project$Sup$drawTrail = F2(
 				_1: {ctor: '[]'}
 			});
 	});
-var _user$project$Sup$drawBody = F2(
+var _user$project$EarthMoon$drawBody = F2(
 	function (_p3, _p2) {
 		var _p4 = _p3;
 		var _p6 = _p4.scale;
@@ -18591,10 +18591,10 @@ var _user$project$Sup$drawBody = F2(
 					_1: {ctor: '[]'}
 				}));
 	});
-var _user$project$Sup$kineticEnergy = function (thing) {
+var _user$project$EarthMoon$kineticEnergy = function (thing) {
 	return (0.5 * thing.mass) * _ianmackenzie$elm_geometry$Vector3d$squaredLength(thing.velocity);
 };
-var _user$project$Sup$applyN = F3(
+var _user$project$EarthMoon$applyN = F3(
 	function (n, fun, input) {
 		applyN:
 		while (true) {
@@ -18611,8 +18611,8 @@ var _user$project$Sup$applyN = F3(
 			}
 		}
 	});
-var _user$project$Sup$constG = 6.67408e-11;
-var _user$project$Sup$euler = F2(
+var _user$project$EarthMoon$constG = 6.67408e-11;
+var _user$project$EarthMoon$euler = F2(
 	function (dt, _p7) {
 		var _p8 = _p7;
 		var _p13 = _p8._1;
@@ -18624,7 +18624,7 @@ var _user$project$Sup$euler = F2(
 		var x = _p10._0;
 		var y = _p10._1;
 		var z = _p10._2;
-		var quot = ((dt * _user$project$Sup$constG) * _p8._0.mass) / Math.pow(
+		var quot = ((dt * _user$project$EarthMoon$constG) * _p8._0.mass) / Math.pow(
 			(Math.pow(x, 2) + Math.pow(y, 2)) + Math.pow(z, 2),
 			3 / 2);
 		var _p11 = {ctor: '_Tuple3', _0: x + (u * dt), _1: y + (v * dt), _2: z + (w * dt)};
@@ -18644,12 +18644,12 @@ var _user$project$Sup$euler = F2(
 					{ctor: '_Tuple3', _0: un, _1: vn, _2: wn})
 			});
 	});
-var _user$project$Sup$potentialEnergy = F2(
+var _user$project$EarthMoon$potentialEnergy = F2(
 	function (body1, body2) {
 		var r = A2(_ianmackenzie$elm_geometry$Point3d$distanceFrom, body1.position, body2.position);
-		return (((0 - _user$project$Sup$constG) * body1.mass) * body2.mass) / (2 * r);
+		return (((0 - _user$project$EarthMoon$constG) * body1.mass) * body2.mass) / (2 * r);
 	});
-var _user$project$Sup$onWheel = function (message) {
+var _user$project$EarthMoon$onWheel = function (message) {
 	return A2(
 		_elm_lang$html$Html_Events$on,
 		'wheel',
@@ -18665,7 +18665,7 @@ var _user$project$Sup$onWheel = function (message) {
 				},
 				_elm_lang$core$Json_Decode$int)));
 };
-var _user$project$Sup$tdStyleRight = _elm_lang$html$Html_Attributes$style(
+var _user$project$EarthMoon$tdStyleRight = _elm_lang$html$Html_Attributes$style(
 	{
 		ctor: '::',
 		_0: {ctor: '_Tuple2', _0: 'width', _1: '120px'},
@@ -18675,7 +18675,7 @@ var _user$project$Sup$tdStyleRight = _elm_lang$html$Html_Attributes$style(
 			_1: {ctor: '[]'}
 		}
 	});
-var _user$project$Sup$tdStyleLeft = _elm_lang$html$Html_Attributes$style(
+var _user$project$EarthMoon$tdStyleLeft = _elm_lang$html$Html_Attributes$style(
 	{
 		ctor: '::',
 		_0: {ctor: '_Tuple2', _0: 'width', _1: '80px'},
@@ -18685,7 +18685,7 @@ var _user$project$Sup$tdStyleLeft = _elm_lang$html$Html_Attributes$style(
 			_1: {ctor: '[]'}
 		}
 	});
-var _user$project$Sup$paneStyle = _elm_lang$html$Html_Attributes$style(
+var _user$project$EarthMoon$paneStyle = _elm_lang$html$Html_Attributes$style(
 	{
 		ctor: '::',
 		_0: {ctor: '_Tuple2', _0: 'flex', _1: '1'},
@@ -18703,7 +18703,7 @@ var _user$project$Sup$paneStyle = _elm_lang$html$Html_Attributes$style(
 			}
 		}
 	});
-var _user$project$Sup$annoy = F2(
+var _user$project$EarthMoon$annoy = F2(
 	function (perturbation, thing) {
 		var _p14 = perturbation;
 		switch (_p14.ctor) {
@@ -18730,7 +18730,7 @@ var _user$project$Sup$annoy = F2(
 					});
 		}
 	});
-var _user$project$Sup$initMoon = {
+var _user$project$EarthMoon$initMoon = {
 	mass: 7.34767309e22,
 	position: _ianmackenzie$elm_geometry$Point3d$fromCoordinates(
 		{ctor: '_Tuple3', _0: 384400000, _1: 0, _2: 0}),
@@ -18739,7 +18739,7 @@ var _user$project$Sup$initMoon = {
 	radius: 1737000,
 	atmosphere: 0
 };
-var _user$project$Sup$initEarth = {
+var _user$project$EarthMoon$initEarth = {
 	mass: 5.9722e24,
 	position: _ianmackenzie$elm_geometry$Point3d$fromCoordinates(
 		{ctor: '_Tuple3', _0: 0, _1: 0, _2: 0}),
@@ -18748,22 +18748,22 @@ var _user$project$Sup$initEarth = {
 	radius: 6371000,
 	atmosphere: 5.0e-2
 };
-var _user$project$Sup$Model = F6(
+var _user$project$EarthMoon$Model = F6(
 	function (a, b, c, d, e, f) {
 		return {earth: a, moon: b, trail: c, runState: d, projection: e, dt: f};
 	});
-var _user$project$Sup$Body = F5(
+var _user$project$EarthMoon$Body = F5(
 	function (a, b, c, d, e) {
 		return {mass: a, position: b, velocity: c, radius: d, atmosphere: e};
 	});
-var _user$project$Sup$Projection = F3(
+var _user$project$EarthMoon$Projection = F3(
 	function (a, b, c) {
 		return {plane: a, center: b, scale: c};
 	});
-var _user$project$Sup$Paused = {ctor: 'Paused'};
-var _user$project$Sup$initModel = {
-	earth: _user$project$Sup$initEarth,
-	moon: _user$project$Sup$initMoon,
+var _user$project$EarthMoon$Paused = {ctor: 'Paused'};
+var _user$project$EarthMoon$initModel = {
+	earth: _user$project$EarthMoon$initEarth,
+	moon: _user$project$EarthMoon$initMoon,
 	trail: {ctor: '[]'},
 	projection: {
 		plane: _ianmackenzie$elm_geometry$SketchPlane3d$xy,
@@ -18771,20 +18771,20 @@ var _user$project$Sup$initModel = {
 			{ctor: '_Tuple2', _0: 0, _1: 0}),
 		scale: 7.0e-7
 	},
-	runState: _user$project$Sup$Paused,
+	runState: _user$project$EarthMoon$Paused,
 	dt: 0
 };
-var _user$project$Sup$init = {ctor: '_Tuple2', _0: _user$project$Sup$initModel, _1: _elm_lang$core$Platform_Cmd$none};
-var _user$project$Sup$Running = {ctor: 'Running'};
-var _user$project$Sup$toggleRunState = function (runState) {
+var _user$project$EarthMoon$init = {ctor: '_Tuple2', _0: _user$project$EarthMoon$initModel, _1: _elm_lang$core$Platform_Cmd$none};
+var _user$project$EarthMoon$Running = {ctor: 'Running'};
+var _user$project$EarthMoon$toggleRunState = function (runState) {
 	var _p15 = runState;
 	if (_p15.ctor === 'Paused') {
-		return _user$project$Sup$Running;
+		return _user$project$EarthMoon$Running;
 	} else {
-		return _user$project$Sup$Paused;
+		return _user$project$EarthMoon$Paused;
 	}
 };
-var _user$project$Sup$update = F2(
+var _user$project$EarthMoon$update = F2(
 	function (msg, _p16) {
 		var _p17 = _p16;
 		var _p21 = _p17.projection;
@@ -18796,11 +18796,11 @@ var _user$project$Sup$update = F2(
 				return {ctor: '_Tuple2', _0: _p19, _1: _elm_lang$core$Platform_Cmd$none};
 			case 'Tick':
 				var moon_ = A3(
-					_user$project$Sup$applyN,
+					_user$project$EarthMoon$applyN,
 					2000,
 					function (m) {
 						return A2(
-							_user$project$Sup$euler,
+							_user$project$EarthMoon$euler,
 							3,
 							{ctor: '_Tuple2', _0: _p17.earth, _1: m});
 					},
@@ -18822,7 +18822,7 @@ var _user$project$Sup$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						_p19,
 						{
-							runState: _user$project$Sup$toggleRunState(_p17.runState)
+							runState: _user$project$EarthMoon$toggleRunState(_p17.runState)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -18832,7 +18832,7 @@ var _user$project$Sup$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						_p19,
 						{
-							moon: A2(_user$project$Sup$annoy, _p18._0, _p20)
+							moon: A2(_user$project$EarthMoon$annoy, _p18._0, _p20)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -18852,10 +18852,10 @@ var _user$project$Sup$update = F2(
 				};
 		}
 	});
-var _user$project$Sup$Zoom = function (a) {
+var _user$project$EarthMoon$Zoom = function (a) {
 	return {ctor: 'Zoom', _0: a};
 };
-var _user$project$Sup$drawing = function (_p22) {
+var _user$project$EarthMoon$drawing = function (_p22) {
 	var _p23 = _p22;
 	var _p24 = _p23.projection;
 	var everything = A2(
@@ -18892,14 +18892,14 @@ var _user$project$Sup$drawing = function (_p22) {
 			_elm_lang$core$Basics_ops['++'],
 			A2(
 				_elm_lang$core$List$map,
-				_user$project$Sup$drawTrail(_p24),
+				_user$project$EarthMoon$drawTrail(_p24),
 				_p23.trail),
 			{
 				ctor: '::',
-				_0: A2(_user$project$Sup$drawBody, _p24, _p23.earth),
+				_0: A2(_user$project$EarthMoon$drawBody, _p24, _p23.earth),
 				_1: {
 					ctor: '::',
-					_0: A2(_user$project$Sup$drawBody, _p24, _p23.moon),
+					_0: A2(_user$project$EarthMoon$drawBody, _p24, _p23.moon),
 					_1: {ctor: '[]'}
 				}
 			}));
@@ -18917,7 +18917,7 @@ var _user$project$Sup$drawing = function (_p22) {
 					_0: _elm_lang$svg$Svg_Attributes$viewBox('-500 -300 1000 600'),
 					_1: {
 						ctor: '::',
-						_0: _user$project$Sup$onWheel(_user$project$Sup$Zoom),
+						_0: _user$project$EarthMoon$onWheel(_user$project$EarthMoon$Zoom),
 						_1: {ctor: '[]'}
 					}
 				}
@@ -18925,26 +18925,26 @@ var _user$project$Sup$drawing = function (_p22) {
 		},
 		everything);
 };
-var _user$project$Sup$Perturb = function (a) {
+var _user$project$EarthMoon$Perturb = function (a) {
 	return {ctor: 'Perturb', _0: a};
 };
-var _user$project$Sup$ToggleRunState = {ctor: 'ToggleRunState'};
-var _user$project$Sup$Tick = function (a) {
+var _user$project$EarthMoon$ToggleRunState = {ctor: 'ToggleRunState'};
+var _user$project$EarthMoon$Tick = function (a) {
 	return {ctor: 'Tick', _0: a};
 };
-var _user$project$Sup$subscriptions = function (_p25) {
+var _user$project$EarthMoon$subscriptions = function (_p25) {
 	var _p26 = _p25;
-	return _elm_lang$core$Native_Utils.eq(_p26.runState, _user$project$Sup$Paused) ? _elm_lang$core$Platform_Sub$none : _elm_lang$animation_frame$AnimationFrame$diffs(_user$project$Sup$Tick);
+	return _elm_lang$core$Native_Utils.eq(_p26.runState, _user$project$EarthMoon$Paused) ? _elm_lang$core$Platform_Sub$none : _elm_lang$animation_frame$AnimationFrame$diffs(_user$project$EarthMoon$Tick);
 };
-var _user$project$Sup$Nope = {ctor: 'Nope'};
-var _user$project$Sup$Bother = {ctor: 'Bother'};
-var _user$project$Sup$Faster = {ctor: 'Faster'};
-var _user$project$Sup$Brake = {ctor: 'Brake'};
-var _user$project$Sup$controlPane = function (_p27) {
+var _user$project$EarthMoon$Nope = {ctor: 'Nope'};
+var _user$project$EarthMoon$Bother = {ctor: 'Bother'};
+var _user$project$EarthMoon$Faster = {ctor: 'Faster'};
+var _user$project$EarthMoon$Brake = {ctor: 'Brake'};
+var _user$project$EarthMoon$controlPane = function (_p27) {
 	var _p28 = _p27;
 	var _p29 = _p28.moon;
-	var potential = A2(_user$project$Sup$potentialEnergy, _p29, _p28.earth);
-	var kinetic = _user$project$Sup$kineticEnergy(_p29);
+	var potential = A2(_user$project$EarthMoon$potentialEnergy, _p29, _p28.earth);
+	var kinetic = _user$project$EarthMoon$kineticEnergy(_p29);
 	return A2(
 		_elm_lang$html$Html$div,
 		{ctor: '[]'},
@@ -18954,7 +18954,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 				_elm_lang$html$Html$button,
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html_Events$onClick(_user$project$Sup$ToggleRunState),
+					_0: _elm_lang$html$Html_Events$onClick(_user$project$EarthMoon$ToggleRunState),
 					_1: {ctor: '[]'}
 				},
 				{
@@ -18969,7 +18969,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 					{
 						ctor: '::',
 						_0: _elm_lang$html$Html_Events$onClick(
-							_user$project$Sup$Perturb(_user$project$Sup$Bother)),
+							_user$project$EarthMoon$Perturb(_user$project$EarthMoon$Bother)),
 						_1: {ctor: '[]'}
 					},
 					{
@@ -18984,7 +18984,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 						{
 							ctor: '::',
 							_0: _elm_lang$html$Html_Events$onClick(
-								_user$project$Sup$Perturb(_user$project$Sup$Brake)),
+								_user$project$EarthMoon$Perturb(_user$project$EarthMoon$Brake)),
 							_1: {ctor: '[]'}
 						},
 						{
@@ -18999,7 +18999,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 							{
 								ctor: '::',
 								_0: _elm_lang$html$Html_Events$onClick(
-									_user$project$Sup$Perturb(_user$project$Sup$Faster)),
+									_user$project$EarthMoon$Perturb(_user$project$EarthMoon$Faster)),
 								_1: {ctor: '[]'}
 							},
 							{
@@ -19040,7 +19040,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 												_elm_lang$html$Html$td,
 												{
 													ctor: '::',
-													_0: _user$project$Sup$tdStyleLeft,
+													_0: _user$project$EarthMoon$tdStyleLeft,
 													_1: {ctor: '[]'}
 												},
 												{
@@ -19054,7 +19054,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 													_elm_lang$html$Html$td,
 													{
 														ctor: '::',
-														_0: _user$project$Sup$tdStyleRight,
+														_0: _user$project$EarthMoon$tdStyleRight,
 														_1: {ctor: '[]'}
 													},
 													{
@@ -19077,7 +19077,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 													_elm_lang$html$Html$td,
 													{
 														ctor: '::',
-														_0: _user$project$Sup$tdStyleLeft,
+														_0: _user$project$EarthMoon$tdStyleLeft,
 														_1: {ctor: '[]'}
 													},
 													{
@@ -19091,7 +19091,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 														_elm_lang$html$Html$td,
 														{
 															ctor: '::',
-															_0: _user$project$Sup$tdStyleRight,
+															_0: _user$project$EarthMoon$tdStyleRight,
 															_1: {ctor: '[]'}
 														},
 														{
@@ -19114,7 +19114,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 														_elm_lang$html$Html$td,
 														{
 															ctor: '::',
-															_0: _user$project$Sup$tdStyleLeft,
+															_0: _user$project$EarthMoon$tdStyleLeft,
 															_1: {ctor: '[]'}
 														},
 														{
@@ -19128,7 +19128,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 															_elm_lang$html$Html$td,
 															{
 																ctor: '::',
-																_0: _user$project$Sup$tdStyleRight,
+																_0: _user$project$EarthMoon$tdStyleRight,
 																_1: {ctor: '[]'}
 															},
 															{
@@ -19150,7 +19150,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 															_elm_lang$html$Html$td,
 															{
 																ctor: '::',
-																_0: _user$project$Sup$tdStyleLeft,
+																_0: _user$project$EarthMoon$tdStyleLeft,
 																_1: {ctor: '[]'}
 															},
 															{
@@ -19164,7 +19164,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 																_elm_lang$html$Html$td,
 																{
 																	ctor: '::',
-																	_0: _user$project$Sup$tdStyleRight,
+																	_0: _user$project$EarthMoon$tdStyleRight,
 																	_1: {ctor: '[]'}
 																},
 																{
@@ -19187,7 +19187,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 																_elm_lang$html$Html$td,
 																{
 																	ctor: '::',
-																	_0: _user$project$Sup$tdStyleLeft,
+																	_0: _user$project$EarthMoon$tdStyleLeft,
 																	_1: {ctor: '[]'}
 																},
 																{
@@ -19201,7 +19201,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 																	_elm_lang$html$Html$td,
 																	{
 																		ctor: '::',
-																		_0: _user$project$Sup$tdStyleRight,
+																		_0: _user$project$EarthMoon$tdStyleRight,
 																		_1: {ctor: '[]'}
 																	},
 																	{
@@ -19224,7 +19224,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 																	_elm_lang$html$Html$td,
 																	{
 																		ctor: '::',
-																		_0: _user$project$Sup$tdStyleLeft,
+																		_0: _user$project$EarthMoon$tdStyleLeft,
 																		_1: {ctor: '[]'}
 																	},
 																	{
@@ -19238,7 +19238,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 																		_elm_lang$html$Html$td,
 																		{
 																			ctor: '::',
-																			_0: _user$project$Sup$tdStyleRight,
+																			_0: _user$project$EarthMoon$tdStyleRight,
 																			_1: {ctor: '[]'}
 																		},
 																		{
@@ -19264,7 +19264,7 @@ var _user$project$Sup$controlPane = function (_p27) {
 			}
 		});
 };
-var _user$project$Sup$view = function (model) {
+var _user$project$EarthMoon$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -19283,12 +19283,12 @@ var _user$project$Sup$view = function (model) {
 				_elm_lang$html$Html$div,
 				{
 					ctor: '::',
-					_0: _user$project$Sup$paneStyle,
+					_0: _user$project$EarthMoon$paneStyle,
 					_1: {ctor: '[]'}
 				},
 				{
 					ctor: '::',
-					_0: _user$project$Sup$controlPane(model),
+					_0: _user$project$EarthMoon$controlPane(model),
 					_1: {ctor: '[]'}
 				}),
 			_1: {
@@ -19307,19 +19307,19 @@ var _user$project$Sup$view = function (model) {
 					},
 					{
 						ctor: '::',
-						_0: _user$project$Sup$drawing(model),
+						_0: _user$project$EarthMoon$drawing(model),
 						_1: {ctor: '[]'}
 					}),
 				_1: {ctor: '[]'}
 			}
 		});
 };
-var _user$project$Sup$main = _elm_lang$html$Html$program(
-	{init: _user$project$Sup$init, update: _user$project$Sup$update, view: _user$project$Sup$view, subscriptions: _user$project$Sup$subscriptions})();
+var _user$project$EarthMoon$main = _elm_lang$html$Html$program(
+	{init: _user$project$EarthMoon$init, update: _user$project$EarthMoon$update, view: _user$project$EarthMoon$view, subscriptions: _user$project$EarthMoon$subscriptions})();
 var Elm = {};
-Elm['Sup'] = Elm['Sup'] || {};
-if (typeof _user$project$Sup$main !== 'undefined') {
-    _user$project$Sup$main(Elm['Sup'], 'Sup', undefined);
+Elm['EarthMoon'] = Elm['EarthMoon'] || {};
+if (typeof _user$project$EarthMoon$main !== 'undefined') {
+    _user$project$EarthMoon$main(Elm['EarthMoon'], 'EarthMoon', undefined);
 }
 
 if (typeof define === "function" && define['amd'])
@@ -19351,4 +19351,4 @@ for (var publicModule in Elm)
 }
 
 }).call(this);
-</script></head><body><script type="text/javascript">Elm.Sup.fullscreen()</script></body></html>
+</script></head><body><script type="text/javascript">Elm.EarthMoon.fullscreen()</script></body></html>
