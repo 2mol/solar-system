@@ -75,11 +75,11 @@ init =
 initModel : Model
 initModel =
     { sun = sun
-    , planets = [ earth, venus ]
+    , planets = [ earth, mars, venus ]
     , projection =
         { plane = SketchPlane3d.xy
         , center = Point2d.fromCoordinates ( 0, 0 )
-        , scale = 3.0e-9
+        , scale = 2.0e-9
         }
     , runState = Paused
     , dt = 0
@@ -106,11 +106,21 @@ earth =
     }
 
 
+mars : Body
+mars =
+    { mass = 0.64171
+    , position = Point3d.fromCoordinates ( 206620000000, 0, 0 )
+    , velocity = Vector3d.fromComponents ( 0, -26500, 0 )
+    , radius = 3390000
+    , color = "#991600"
+    }
+
+
 venus : Body
 venus =
     { mass = 4.868
     , position = Point3d.fromCoordinates ( 107480000000, 0, 0 )
-    , velocity = Vector3d.fromComponents ( 0, -35500, 0 )
+    , velocity = Vector3d.fromComponents ( 0, 35500, 0 )
     , radius = 6052000
     , color = "#a3159c"
     }
@@ -125,7 +135,7 @@ update msg ({ runState, sun, planets, projection } as model) =
         Tick dt ->
             let
                 repeatedEuler planet =
-                    applyN 2000 (euler 10 sun) planet
+                    applyN 2000 (euler 20 sun) planet
 
                 planets_ =
                     List.map repeatedEuler planets
