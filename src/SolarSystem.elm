@@ -1,7 +1,5 @@
 module Sup exposing (main)
 
-
-import String
 import Browser
 import Browser.Events exposing (onAnimationFrameDelta)
 import Circle2d
@@ -14,6 +12,7 @@ import Point2d exposing (Point2d)
 import Point3d exposing (Point3d)
 import Round
 import SketchPlane3d exposing (SketchPlane3d)
+import String
 import Svg exposing (Svg)
 import Svg.Attributes as SvgA exposing (height, width, x, y)
 import Vector3d exposing (Vector3d)
@@ -167,10 +166,10 @@ update msg ({ runState, sun, planets, projection } as model) =
 
 view : Model -> Html Msg
 view model =
-    Html.div [ style  "display" "flex"   ]
-        [ Html.div  paneStyle
+    Html.div [ style "display" "flex" ]
+        [ Html.div paneStyle
             [ controlPane model ]
-        , Html.div [ style "flex" "1"  ]
+        , Html.div [ style "flex" "1" ]
             [ drawing model ]
         ]
 
@@ -179,6 +178,7 @@ subscriptions : Model -> Sub Msg
 subscriptions { runState } =
     if runState == Paused then
         Sub.none
+
     else
         onAnimationFrameDelta Tick
 
@@ -197,32 +197,31 @@ controlPane { sun, planets, frameTime, projection } =
             , style "table-layout" "fixed"
             ]
             [ Html.tr []
-                [ Html.td  tdStyleLeft  [ Html.text "fps" ]
-                , Html.td  tdStyleRight  [ Html.text <| Round.round 2 (1000 / frameTime) ]
+                [ Html.td tdStyleLeft [ Html.text "fps" ]
+                , Html.td tdStyleRight [ Html.text <| Round.round 2 (1000 / frameTime) ]
                 ]
             , Html.tr []
-                [ Html.td  tdStyleLeft  [ Html.text "scale" ]
-                , Html.td  tdStyleRight  [ Html.text <| Round.round 10 projection.scale ]
+                [ Html.td tdStyleLeft [ Html.text "scale" ]
+                , Html.td tdStyleRight [ Html.text <| Round.round 10 projection.scale ]
                 ]
             ]
         ]
 
 
 paneStyle =
-
-        [ style "flex"  "1"
-        , style "padding" "1rem"
-        , style "font-family" "Courier New"
-        , style "font-size" "0.6em"
-        ]
+    [ style "flex" "1"
+    , style "padding" "1rem"
+    , style "font-family" "Courier New"
+    , style "font-size" "0.6em"
+    ]
 
 
 tdStyleLeft =
-    [ style "width" "80px" , style "word-wrap" "break-word"  ]
+    [ style "width" "80px", style "word-wrap" "break-word" ]
 
 
 tdStyleRight =
-     [ style "width" "120px" , style "word-wrap" "break-word"  ]
+    [ style "width" "120px", style "word-wrap" "break-word" ]
 
 
 toggleRunState : RunState -> RunState
@@ -263,6 +262,7 @@ applyN : Int -> (a -> a) -> a -> a
 applyN n fun input =
     if n <= 0 then
         input
+
     else
         applyN (n - 1) fun (fun input)
 

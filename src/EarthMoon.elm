@@ -1,6 +1,5 @@
 module Sup exposing (main)
 
-import String
 import Browser
 import Browser.Events exposing (onAnimationFrameDelta)
 import Circle2d
@@ -14,6 +13,7 @@ import Point2d exposing (Point2d)
 import Point3d exposing (Point3d)
 import Round
 import SketchPlane3d exposing (SketchPlane3d)
+import String
 import Svg exposing (Svg)
 import Svg.Attributes as SvgA exposing (height, width, x, y)
 import Vector3d exposing (Vector3d)
@@ -163,6 +163,7 @@ subscriptions : Model -> Sub Msg
 subscriptions { runState } =
     if runState == Paused then
         Sub.none
+
     else
         onAnimationFrameDelta Tick
 
@@ -212,22 +213,22 @@ controlPane { earth, moon, dt, projection } =
         , Html.button [ onClick <| Perturb Bother ] [ Html.text "bother" ]
         , Html.button [ onClick <| Perturb Brake ] [ Html.text "brake" ]
         , Html.button [ onClick <| Perturb Faster ] [ Html.text "faster" ]
-        , Html.table [  style "border" "1px solid black" , style "width" "100%" , style "table-layout" "fixed"   ]
+        , Html.table [ style "border" "1px solid black", style "width" "100%", style "table-layout" "fixed" ]
             [ Html.tr []
-                [ Html.td  tdStyleLeft  [ Html.text "fps" ]
-                , Html.td  tdStyleRight  [ Html.text <| Round.round 2 (1000 / dt) ]
+                [ Html.td tdStyleLeft [ Html.text "fps" ]
+                , Html.td tdStyleRight [ Html.text <| Round.round 2 (1000 / dt) ]
                 ]
             , Html.tr []
-                [ Html.td  tdStyleLeft  [ Html.text "scale" ]
-                , Html.td  tdStyleRight  [ Html.text <| Round.round 10 projection.scale ]
+                [ Html.td tdStyleLeft [ Html.text "scale" ]
+                , Html.td tdStyleRight [ Html.text <| Round.round 10 projection.scale ]
                 ]
             , Html.tr []
-                [ Html.td  tdStyleLeft [ Html.text "eccentricity" ]
-                , Html.td  tdStyleRight  [ Html.text "" ]
+                [ Html.td tdStyleLeft [ Html.text "eccentricity" ]
+                , Html.td tdStyleRight [ Html.text "" ]
                 ]
             , Html.tr []
-                [ Html.td  tdStyleLeft  [ Html.text "kinetic energy" ]
-                , Html.td  tdStyleRight
+                [ Html.td tdStyleLeft [ Html.text "kinetic energy" ]
+                , Html.td tdStyleRight
                     [ kinetic
                         -- |> Round.round 6
                         |> String.fromFloat
@@ -235,7 +236,7 @@ controlPane { earth, moon, dt, projection } =
                     ]
                 ]
             , Html.tr []
-                [ Html.td  tdStyleLeft  [ Html.text "potential energy" ]
+                [ Html.td tdStyleLeft [ Html.text "potential energy" ]
                 , Html.td tdStyleRight
                     [ potential
                         -- |> Round.round 6
@@ -244,8 +245,8 @@ controlPane { earth, moon, dt, projection } =
                     ]
                 ]
             , Html.tr []
-                [ Html.td tdStyleLeft  [ Html.text "total energy" ]
-                , Html.td  tdStyleRight
+                [ Html.td tdStyleLeft [ Html.text "total energy" ]
+                , Html.td tdStyleRight
                     [ (kinetic + potential)
                         |> String.fromFloat
                         -- |> Round.round 6
@@ -257,20 +258,19 @@ controlPane { earth, moon, dt, projection } =
 
 
 paneStyle =
-
-        [ style "flex" "1"
-        , style "padding" "1rem"
-        , style "font-family" "Courier New"
-        , style "font-size" "0.6em"
-        ]
+    [ style "flex" "1"
+    , style "padding" "1rem"
+    , style "font-family" "Courier New"
+    , style "font-size" "0.6em"
+    ]
 
 
 tdStyleLeft =
-     [ style "width" "80px" , style "word-wrap" "break-word"  ]
+    [ style "width" "80px", style "word-wrap" "break-word" ]
 
 
 tdStyleRight =
-     [ style "width" "120px" , style "word-wrap" "break-word"  ]
+    [ style "width" "120px", style "word-wrap" "break-word" ]
 
 
 
@@ -314,6 +314,7 @@ applyN : Int -> (a -> a) -> a -> a
 applyN n fun input =
     if n <= 0 then
         input
+
     else
         applyN (n - 1) fun (fun input)
 
@@ -412,6 +413,7 @@ drawBody { plane, center, scale } { mass, position, radius, atmosphere } =
                 [ Svg.circle2d [ SvgA.fill "#adc5ed", SvgA.opacity "0.35" ]
                     (Circle2d.withRadius (scaledRadius + 20) scaledPosition)
                 ]
+
             else
                 [ Svg.circle2d [ SvgA.fill "#fff200", SvgA.opacity "0.35" ]
                     (Circle2d.withRadius (scaledRadius + 10) scaledPosition)
