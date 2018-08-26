@@ -121,7 +121,7 @@ update msg ({ runState, earth, moon, trail, projection } as model) =
         Tick dt ->
             let
                 trail_ =
-                    List.take 450 <| moon.position :: trail
+                    List.take 150 <| moon.position :: trail
 
                 moon_ =
                     applyN 2000 (\m -> euler 3 ( earth, m )) moon
@@ -203,7 +203,7 @@ controlPane : Model -> Html Msg
 controlPane { earth, moon, dt, projection } =
     let
         kinetic =
-            kineticEnergy moon
+            kineticEnergy earth moon
 
         potential =
             potentialEnergy moon earth
@@ -230,7 +230,6 @@ controlPane { earth, moon, dt, projection } =
                 [ Html.td tdStyleLeft [ Html.text "kinetic energy" ]
                 , Html.td tdStyleRight
                     [ kinetic
-                        -- |> Round.round 6
                         |> String.fromFloat
                         |> Html.text
                     ]
@@ -239,7 +238,6 @@ controlPane { earth, moon, dt, projection } =
                 [ Html.td tdStyleLeft [ Html.text "potential energy" ]
                 , Html.td tdStyleRight
                     [ potential
-                        -- |> Round.round 6
                         |> String.fromFloat
                         |> Html.text
                     ]
@@ -249,7 +247,6 @@ controlPane { earth, moon, dt, projection } =
                 , Html.td tdStyleRight
                     [ (kinetic + potential)
                         |> String.fromFloat
-                        -- |> Round.round 6
                         |> Html.text
                     ]
                 ]
@@ -271,19 +268,6 @@ tdStyleLeft =
 
 tdStyleRight =
     [ style "width" "120px", style "word-wrap" "break-word" ]
-
-
-
--- roundHelper : number -> Float -> String
--- roundHelper decimals num =
---     let
---         scale =
---             10 ^ decimals
---     in
---     (num * scale)
---         |> (round >> toFloat)
---         |> (\n -> n / scale)
---         |> FormatNumber.format { usLocale | decimals = decimals }
 
 
 toggleRunState : RunState -> RunState
@@ -349,9 +333,13 @@ euler dt ( fixedBody, movingBody ) =
     }
 
 
-kineticEnergy : { a | mass : Mass, velocity : Vector3d } -> Float
-kineticEnergy thing =
-    0.5 * thing.mass * Vector3d.squaredLength thing.velocity
+kineticEnergy : Body -> Body -> Float
+kineticEnergy fixBody movBody =
+    let
+        mu =
+            1 / (1 / fixBody.mass + 1 / movBody.mass)
+    in
+    0.5 * mu * Vector3d.squaredLength movBody.velocity
 
 
 potentialEnergy : Body -> Body -> Float
@@ -360,21 +348,7 @@ potentialEnergy body1 body2 =
         r =
             Point3d.distanceFrom body1.position body2.position
     in
-    -constG * body1.mass * body2.mass / (2 * r)
-
-
-
--- gravitationalPotential :
---     { a | mass : Mass, position : Point3d }
---     -> { b | position : Point3d }
---     -> Float
--- gravitationalPotential thing body =
---     let
---         r =
---             Point3d.distanceFrom thing.position body.position
---     in
---     thing.mass / r
---
+    -constG * body1.mass * body2.mass / r
 
 
 drawing : Model -> Html Msg

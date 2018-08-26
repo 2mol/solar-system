@@ -297,18 +297,8 @@ euler dt fixedBody movingBody =
     }
 
 
-kineticEnergy : { a | mass : EarthMass, velocity : Vector3d } -> Float
-kineticEnergy thing =
-    0.5 * thing.mass * Vector3d.squaredLength thing.velocity
 
-
-potentialEnergy : Body -> Body -> Float
-potentialEnergy body1 body2 =
-    let
-        r =
-            Point3d.distanceFrom body1.position body2.position
-    in
-    -constGmod * body1.mass * body2.mass / (2 * r)
+--
 
 
 drawing : Model -> Html Msg
