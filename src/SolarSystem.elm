@@ -1,10 +1,13 @@
 module Sup exposing (main)
 
-import AnimationFrame
+
+import String
+import Browser
+import Browser.Events exposing (onAnimationFrameDelta)
 import Circle2d
 import Geometry.Svg as Svg
 import Html exposing (Html)
-import Html.Attributes as HtmlA
+import Html.Attributes exposing (style)
 import Html.Events exposing (on, onClick)
 import Json.Decode as Json
 import Point2d exposing (Point2d)
@@ -16,10 +19,10 @@ import Svg.Attributes as SvgA exposing (height, width, x, y)
 import Vector3d exposing (Vector3d)
 
 
-main : Program Never Model Msg
+main : Program () Model Msg
 main =
-    Html.program
-        { init = init
+    Browser.element
+        { init = \_ -> init
         , update = update
         , view = view
         , subscriptions = subscriptions
@@ -75,7 +78,7 @@ init =
 
 initModel : Model
 initModel =
-    { sun = sun
+    { sun = initSun
     , planets = [ earth, mars, venus ]
     , projection =
         { plane = SketchPlane3d.xy
@@ -88,8 +91,8 @@ initModel =
     }
 
 
-sun : Body
-sun =
+initSun : Body
+initSun =
     { mass = 1.98847e6
     , position = Point3d.fromCoordinates ( 0, 0, 0 )
     , velocity = Vector3d.fromComponents ( 0, 0, 0 )
@@ -122,7 +125,7 @@ venus : Body
 venus =
     { mass = 4.868
     , position = Point3d.fromCoordinates ( 107480000000, 0, 0 )
-    , velocity = Vector3d.fromComponents ( 0, 35500, 0 )
+    , velocity = Vector3d.fromComponents ( 0, -35500, 0 )
     , radius = 6052000
     , color = "#a3159c"
     }
@@ -164,10 +167,10 @@ update msg ({ runState, sun, planets, projection } as model) =
 
 view : Model -> Html Msg
 view model =
-    Html.div [ HtmlA.style [ ( "display", "flex" ) ] ]
-        [ Html.div [ paneStyle ]
+    Html.div [ style  "display" "flex"   ]
+        [ Html.div  paneStyle
             [ controlPane model ]
-        , Html.div [ HtmlA.style [ ( "flex", "1" ) ] ]
+        , Html.div [ style "flex" "1"  ]
             [ drawing model ]
         ]
 
@@ -177,7 +180,7 @@ subscriptions { runState } =
     if runState == Paused then
         Sub.none
     else
-        AnimationFrame.diffs Tick
+        onAnimationFrameDelta Tick
 
 
 
@@ -188,37 +191,38 @@ controlPane : Model -> Html Msg
 controlPane { sun, planets, frameTime, projection } =
     Html.div []
         [ Html.button [ onClick ToggleRunState ] [ Html.text "play/pause" ]
-        , Html.table [ HtmlA.style [ ( "border", "1px solid black" ), ( "width", "100%" ), ( "table-layout", "fixed" ) ] ]
+        , Html.table
+            [ style "border" "1px solid black"
+            , style "width" "100%"
+            , style "table-layout" "fixed"
+            ]
             [ Html.tr []
-                [ Html.td [ tdStyleLeft ] [ Html.text "fps" ]
-                , Html.td [ tdStyleRight ] [ Html.text <| Round.round 2 (1000 / frameTime) ]
+                [ Html.td  tdStyleLeft  [ Html.text "fps" ]
+                , Html.td  tdStyleRight  [ Html.text <| Round.round 2 (1000 / frameTime) ]
                 ]
             , Html.tr []
-                [ Html.td [ tdStyleLeft ] [ Html.text "scale" ]
-                , Html.td [ tdStyleRight ] [ Html.text <| Round.round 10 projection.scale ]
+                [ Html.td  tdStyleLeft  [ Html.text "scale" ]
+                , Html.td  tdStyleRight  [ Html.text <| Round.round 10 projection.scale ]
                 ]
             ]
         ]
 
 
-paneStyle : Html.Attribute msg
 paneStyle =
-    HtmlA.style
-        [ ( "flex", "1" )
-        , ( "padding", "1rem" )
-        , ( "font-family", "Courier New" )
-        , ( "font-size", "0.6em" )
+
+        [ style "flex"  "1"
+        , style "padding" "1rem"
+        , style "font-family" "Courier New"
+        , style "font-size" "0.6em"
         ]
 
 
-tdStyleLeft : Html.Attribute msg
 tdStyleLeft =
-    HtmlA.style [ ( "width", "80px" ), ( "word-wrap", "break-word" ) ]
+    [ style "width" "80px" , style "word-wrap" "break-word"  ]
 
 
-tdStyleRight : Html.Attribute msg
 tdStyleRight =
-    HtmlA.style [ ( "width", "120px" ), ( "word-wrap", "break-word" ) ]
+     [ style "width" "120px" , style "word-wrap" "break-word"  ]
 
 
 toggleRunState : RunState -> RunState

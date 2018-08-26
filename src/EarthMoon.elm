@@ -1,10 +1,12 @@
 module Sup exposing (main)
 
-import AnimationFrame
+import String
+import Browser
+import Browser.Events exposing (onAnimationFrameDelta)
 import Circle2d
 import Geometry.Svg as Svg
 import Html exposing (Html)
-import Html.Attributes as HtmlA
+import Html.Attributes exposing (style)
 import Html.Events exposing (on, onClick)
 import Json.Decode as Json
 import Plane3d
@@ -17,12 +19,12 @@ import Svg.Attributes as SvgA exposing (height, width, x, y)
 import Vector3d exposing (Vector3d)
 
 
-main : Program Never Model Msg
+main : Program () Model Msg
 main =
-    Html.program
-        { init = init
-        , update = update
+    Browser.element
+        { init = \_ -> init
         , view = view
+        , update = update
         , subscriptions = subscriptions
         }
 
@@ -149,10 +151,10 @@ update msg ({ runState, earth, moon, trail, projection } as model) =
 
 view : Model -> Html Msg
 view model =
-    Html.div [ HtmlA.style [ ( "display", "flex" ) ] ]
-        [ Html.div [ paneStyle ]
+    Html.div [ style "display" "flex" ]
+        [ Html.div paneStyle
             [ controlPane model ]
-        , Html.div [ HtmlA.style [ ( "flex", "1" ) ] ]
+        , Html.div [ style "flex" "1" ]
             [ drawing model ]
         ]
 
@@ -162,7 +164,7 @@ subscriptions { runState } =
     if runState == Paused then
         Sub.none
     else
-        AnimationFrame.diffs Tick
+        onAnimationFrameDelta Tick
 
 
 
@@ -210,42 +212,42 @@ controlPane { earth, moon, dt, projection } =
         , Html.button [ onClick <| Perturb Bother ] [ Html.text "bother" ]
         , Html.button [ onClick <| Perturb Brake ] [ Html.text "brake" ]
         , Html.button [ onClick <| Perturb Faster ] [ Html.text "faster" ]
-        , Html.table [ HtmlA.style [ ( "border", "1px solid black" ), ( "width", "100%" ), ( "table-layout", "fixed" ) ] ]
+        , Html.table [  style "border" "1px solid black" , style "width" "100%" , style "table-layout" "fixed"   ]
             [ Html.tr []
-                [ Html.td [ tdStyleLeft ] [ Html.text "fps" ]
-                , Html.td [ tdStyleRight ] [ Html.text <| Round.round 2 (1000 / dt) ]
+                [ Html.td  tdStyleLeft  [ Html.text "fps" ]
+                , Html.td  tdStyleRight  [ Html.text <| Round.round 2 (1000 / dt) ]
                 ]
             , Html.tr []
-                [ Html.td [ tdStyleLeft ] [ Html.text "scale" ]
-                , Html.td [ tdStyleRight ] [ Html.text <| Round.round 10 projection.scale ]
+                [ Html.td  tdStyleLeft  [ Html.text "scale" ]
+                , Html.td  tdStyleRight  [ Html.text <| Round.round 10 projection.scale ]
                 ]
             , Html.tr []
-                [ Html.td [ tdStyleLeft ] [ Html.text "eccentricity" ]
-                , Html.td [ tdStyleRight ] [ Html.text "" ]
+                [ Html.td  tdStyleLeft [ Html.text "eccentricity" ]
+                , Html.td  tdStyleRight  [ Html.text "" ]
                 ]
             , Html.tr []
-                [ Html.td [ tdStyleLeft ] [ Html.text "kinetic energy" ]
-                , Html.td [ tdStyleRight ]
+                [ Html.td  tdStyleLeft  [ Html.text "kinetic energy" ]
+                , Html.td  tdStyleRight
                     [ kinetic
                         -- |> Round.round 6
-                        |> toString
+                        |> String.fromFloat
                         |> Html.text
                     ]
                 ]
             , Html.tr []
-                [ Html.td [ tdStyleLeft ] [ Html.text "potential energy" ]
-                , Html.td [ tdStyleRight ]
+                [ Html.td  tdStyleLeft  [ Html.text "potential energy" ]
+                , Html.td tdStyleRight
                     [ potential
                         -- |> Round.round 6
-                        |> toString
+                        |> String.fromFloat
                         |> Html.text
                     ]
                 ]
             , Html.tr []
-                [ Html.td [ tdStyleLeft ] [ Html.text "total energy" ]
-                , Html.td [ tdStyleRight ]
+                [ Html.td tdStyleLeft  [ Html.text "total energy" ]
+                , Html.td  tdStyleRight
                     [ (kinetic + potential)
-                        |> toString
+                        |> String.fromFloat
                         -- |> Round.round 6
                         |> Html.text
                     ]
@@ -255,20 +257,20 @@ controlPane { earth, moon, dt, projection } =
 
 
 paneStyle =
-    HtmlA.style
-        [ ( "flex", "1" )
-        , ( "padding", "1rem" )
-        , ( "font-family", "Courier New" )
-        , ( "font-size", "0.6em" )
+
+        [ style "flex" "1"
+        , style "padding" "1rem"
+        , style "font-family" "Courier New"
+        , style "font-size" "0.6em"
         ]
 
 
 tdStyleLeft =
-    HtmlA.style [ ( "width", "80px" ), ( "word-wrap", "break-word" ) ]
+     [ style "width" "80px" , style "word-wrap" "break-word"  ]
 
 
 tdStyleRight =
-    HtmlA.style [ ( "width", "120px" ), ( "word-wrap", "break-word" ) ]
+     [ style "width" "120px" , style "word-wrap" "break-word"  ]
 
 
 
