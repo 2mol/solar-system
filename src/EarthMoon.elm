@@ -121,7 +121,7 @@ update msg ({ runState, earth, moon, trail, projection } as model) =
         Tick dt ->
             let
                 trail_ =
-                    List.take 100 <| moon.position :: trail
+                    List.take 50 <| moon.position :: trail
 
                 moon_ =
                     applyN 2000 (\m -> euler 3 ( earth, m )) moon
@@ -164,20 +164,19 @@ view model =
             ]
         , drawing model
         , Svg.svg
-            [ width "1000", height "200", SvgA.viewBox "0 0 1000 200" ]
+            [ width "1000", height "200", SvgA.viewBox "0 0 1000 200", style "border" "1px solid black" ]
             [ Svg.rect
                 [ x "2"
                 , y "2"
                 , width "996"
                 , height "196"
                 , SvgA.fill "transparent"
-                , SvgA.stroke "black"
-                , SvgA.strokeWidth "1px"
                 ]
                 []
             ]
         , physicsPane model
         ]
+
 
 
 subscriptions : Model -> Sub Msg
@@ -372,7 +371,7 @@ drawing { earth, moon, trail, projection } =
                 ++ [ drawBody projection earth, drawBody projection moon ]
     in
     Svg.svg
-        [ width "1000", height "600", SvgA.viewBox "-500 -300 1000 600", onWheel Zoom ]
+        [ width "1000", height "600", SvgA.viewBox "-500 -300 1000 600"] --, onWheel Zoom ]
         everything
 
 
