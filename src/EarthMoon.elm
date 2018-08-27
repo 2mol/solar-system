@@ -121,7 +121,7 @@ update msg ({ runState, earth, moon, trail, projection } as model) =
         Tick dt ->
             let
                 trail_ =
-                    List.take 150 <| moon.position :: trail
+                    List.take 100 <| moon.position :: trail
 
                 moon_ =
                     applyN 2000 (\m -> euler 3 ( earth, m )) moon
@@ -151,11 +151,32 @@ update msg ({ runState, earth, moon, trail, projection } as model) =
 
 view : Model -> Html Msg
 view model =
-    Html.div [ style "display" "flex" ]
-        [ Html.div paneStyle
-            [ controlPane model ]
-        , Html.div [ style "flex" "1" ]
-            [ drawing model ]
+    Html.div
+        [ style "display" "flex"
+        , style "flex-direction" "column"
+        , style "align-items" "center"
+        ]
+        [ Html.div []
+            [ Html.button [ onClick ToggleRunState ] [ Html.text "play/pause" ]
+            , Html.button [ onClick <| Perturb Bother ] [ Html.text "bother" ]
+            , Html.button [ onClick <| Perturb Brake ] [ Html.text "brake" ]
+            , Html.button [ onClick <| Perturb Faster ] [ Html.text "faster" ]
+            ]
+        , drawing model
+        , Svg.svg
+            [ width "1000", height "200", SvgA.viewBox "0 0 1000 200" ]
+            [ Svg.rect
+                [ x "2"
+                , y "2"
+                , width "996"
+                , height "196"
+                , SvgA.fill "transparent"
+                , SvgA.stroke "black"
+                , SvgA.strokeWidth "1px"
+                ]
+                []
+            ]
+        , physicsPane model
         ]
 
 
@@ -199,8 +220,8 @@ annoy perturbation thing =
 -- subviews
 
 
-controlPane : Model -> Html Msg
-controlPane { earth, moon, dt, projection } =
+physicsPane : Model -> Html Msg
+physicsPane { earth, moon, dt, projection } =
     let
         kinetic =
             kineticEnergy earth moon
@@ -208,66 +229,54 @@ controlPane { earth, moon, dt, projection } =
         potential =
             potentialEnergy moon earth
     in
-    Html.div []
-        [ Html.button [ onClick ToggleRunState ] [ Html.text "play/pause" ]
-        , Html.button [ onClick <| Perturb Bother ] [ Html.text "bother" ]
-        , Html.button [ onClick <| Perturb Brake ] [ Html.text "brake" ]
-        , Html.button [ onClick <| Perturb Faster ] [ Html.text "faster" ]
-        , Html.table [ style "border" "1px solid black", style "width" "100%", style "table-layout" "fixed" ]
-            [ Html.tr []
-                [ Html.td tdStyleLeft [ Html.text "fps" ]
-                , Html.td tdStyleRight [ Html.text <| Round.round 2 (1000 / dt) ]
+    Html.table
+        [ style "padding" "0.5rem"
+        , style "font-family" "Courier New"
+        , style "font-size" "0.6em"
+        , style "border" "1px solid black"
+        , style "table-layout" "fixed"
+        ]
+        [ Html.tr []
+            [ Html.td tdStyleLeft [ Html.text "fps" ]
+            , Html.td tdStyleRight [ Html.text <| Round.round 2 (1000 / dt) ]
+            ]
+        , Html.tr []
+            [ Html.td tdStyleLeft [ Html.text "scale" ]
+            , Html.td tdStyleRight [ Html.text <| Round.round 10 projection.scale ]
+            ]
+        , Html.tr []
+            [ Html.td tdStyleLeft [ Html.text "kinetic energy" ]
+            , Html.td tdStyleRight
+                [ kinetic
+                    |> String.fromFloat
+                    |> Html.text
                 ]
-            , Html.tr []
-                [ Html.td tdStyleLeft [ Html.text "scale" ]
-                , Html.td tdStyleRight [ Html.text <| Round.round 10 projection.scale ]
+            ]
+        , Html.tr []
+            [ Html.td tdStyleLeft [ Html.text "potential energy" ]
+            , Html.td tdStyleRight
+                [ potential
+                    |> String.fromFloat
+                    |> Html.text
                 ]
-            , Html.tr []
-                [ Html.td tdStyleLeft [ Html.text "eccentricity" ]
-                , Html.td tdStyleRight [ Html.text "" ]
-                ]
-            , Html.tr []
-                [ Html.td tdStyleLeft [ Html.text "kinetic energy" ]
-                , Html.td tdStyleRight
-                    [ kinetic
-                        |> String.fromFloat
-                        |> Html.text
-                    ]
-                ]
-            , Html.tr []
-                [ Html.td tdStyleLeft [ Html.text "potential energy" ]
-                , Html.td tdStyleRight
-                    [ potential
-                        |> String.fromFloat
-                        |> Html.text
-                    ]
-                ]
-            , Html.tr []
-                [ Html.td tdStyleLeft [ Html.text "total energy" ]
-                , Html.td tdStyleRight
-                    [ (kinetic + potential)
-                        |> String.fromFloat
-                        |> Html.text
-                    ]
+            ]
+        , Html.tr []
+            [ Html.td tdStyleLeft [ Html.text "total energy" ]
+            , Html.td tdStyleRight
+                [ (kinetic + potential)
+                    |> String.fromFloat
+                    |> Html.text
                 ]
             ]
         ]
 
 
-paneStyle =
-    [ style "flex" "1"
-    , style "padding" "1rem"
-    , style "font-family" "Courier New"
-    , style "font-size" "0.6em"
-    ]
-
-
 tdStyleLeft =
-    [ style "width" "80px", style "word-wrap" "break-word" ]
+    []
 
 
 tdStyleRight =
-    [ style "width" "120px", style "word-wrap" "break-word" ]
+    [ style "width" "160px" ]
 
 
 toggleRunState : RunState -> RunState
@@ -358,8 +367,8 @@ drawing { earth, moon, trail, projection } =
             SketchPlane3d.xy
 
         everything =
-            (Svg.rect [ x "-500", y "-300", width "100%", height "100%", SvgA.fill "#f7f7f7" ] [] :: [])
-                ++ List.map (drawTrail projection) trail
+            [ Svg.rect [ x "-500", y "-300", width "100%", height "100%", SvgA.fill "#f7f7f7" ] [] ]
+                ++ List.indexedMap (drawTrail projection) trail
                 ++ [ drawBody projection earth, drawBody projection moon ]
     in
     Svg.svg
@@ -401,8 +410,8 @@ drawBody { plane, center, scale } { mass, position, radius, atmosphere } =
         )
 
 
-drawTrail : Projection -> Point3d -> Svg msg
-drawTrail { plane, center, scale } position =
+drawTrail : Projection -> Int -> Point3d -> Svg msg
+drawTrail { plane, center, scale } i position =
     let
         scaledPosition =
             position
