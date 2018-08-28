@@ -9,13 +9,14 @@ import Html.Attributes exposing (style)
 import Html.Events exposing (on, onClick)
 import Json.Decode as Json
 import Plane3d
+import Plotting as P
 import Point2d exposing (Point2d)
 import Point3d exposing (Point3d)
 import Round
 import SketchPlane3d exposing (SketchPlane3d)
 import String
 import Svg exposing (Svg)
-import Svg.Attributes as SvgA exposing (height, width, x, x1, x2, y, y1, y2)
+import Svg.Attributes as SvgA
 import Vector3d exposing (Vector3d)
 
 
@@ -35,7 +36,8 @@ type alias Model =
     , trail : List Point3d
     , runState : RunState
     , projection : Projection
-    , dt : Float
+    , frameTick : Float
+    , fpsHisto : List Float
     }
 
 
@@ -88,7 +90,8 @@ initModel =
         , scale = 7.0e-7
         }
     , runState = Paused
-    , dt = 0
+    , frameTick = 0
+    , fpsHisto = []
     }
 
 
@@ -113,7 +116,7 @@ initMoon =
 
 
 update : Msg -> Model -> ( Model, Cmd msg )
-update msg ({ runState, earth, moon, trail, projection } as model) =
+update msg ({ runState, earth, moon, trail, projection, fpsHisto } as model) =
     case msg of
         Nope ->
             ( model, Cmd.none )
@@ -132,7 +135,14 @@ update msg ({ runState, earth, moon, trail, projection } as model) =
                 trail_ =
                     List.take 50 <| moon.position :: trail
             in
-            ( { model | moon = moon_, trail = trail_, dt = dt }, Cmd.none )
+            ( { model
+                | moon = moon_
+                , trail = trail_
+                , frameTick = dt
+                , fpsHisto = List.take 300 <| 1000 / dt :: fpsHisto
+              }
+            , Cmd.none
+            )
 
         ToggleRunState ->
             ( { model | runState = toggleRunState runState }, Cmd.none )
@@ -164,12 +174,11 @@ view model =
         ]
         [ Html.div []
             [ Html.button [ onClick ToggleRunState ] [ Html.text "play/pause" ]
-            , Html.button [ onClick <| Perturb Bother ] [ Html.text "bother" ]
             , Html.button [ onClick <| Perturb Brake ] [ Html.text "brake" ]
             , Html.button [ onClick <| Perturb Faster ] [ Html.text "faster" ]
             ]
         , drawing model
-        , tplot []
+        , P.tplot model.fpsHisto
         , physicsPane model
         ]
 
@@ -190,19 +199,10 @@ subscriptions { runState } =
 type Perturbation
     = Brake
     | Faster
-    | Bother
 
 
 annoy perturbation thing =
     case perturbation of
-        Bother ->
-            let
-                velocity_ =
-                    thing.velocity
-                        |> Vector3d.sum (Vector3d.fromComponents ( 70, -50, 20 ))
-            in
-            { thing | velocity = velocity_ }
-
         Brake ->
             { thing | velocity = Vector3d.scaleBy 0.8 thing.velocity }
 
@@ -215,7 +215,7 @@ annoy perturbation thing =
 
 
 physicsPane : Model -> Html Msg
-physicsPane { earth, moon, dt, projection } =
+physicsPane { earth, moon, frameTick, projection } =
     let
         kinetic =
             kineticEnergy earth moon
@@ -232,7 +232,7 @@ physicsPane { earth, moon, dt, projection } =
         ]
         [ Html.tr []
             [ Html.td tdStyleLeft [ Html.text "fps" ]
-            , Html.td tdStyleRight [ Html.text <| Round.round 2 (1000 / dt) ]
+            , Html.td tdStyleRight [ Html.text <| Round.round 2 (1000 / frameTick) ]
             ]
         , Html.tr []
             [ Html.td tdStyleLeft [ Html.text "scale" ]
@@ -363,12 +363,12 @@ drawing { earth, moon, trail, projection } =
             SketchPlane3d.xy
 
         everything =
-            [ Svg.rect [ x "-500", y "-300", width "100%", height "100%", SvgA.fill "#f7f7f7" ] [] ]
+            [ Svg.rect [ SvgA.x "-500", SvgA.y "-300", SvgA.width "100%", SvgA.height "100%", SvgA.fill "#f7f7f7" ] [] ]
                 ++ List.indexedMap (drawTrail projection) trail
                 ++ [ drawBody projection earth, drawBody projection moon ]
     in
     Svg.svg
-        [ width "1000", height "600", SvgA.viewBox "-500 -300 1000 600" ]
+        [ SvgA.width "1000", SvgA.height "600", SvgA.viewBox "-500 -300 1000 600" ]
         --, onWheel Zoom ]
         everything
 
@@ -423,35 +423,3 @@ drawTrail { plane, center, scale } i position =
 
 
 ---
-
-
-type TPlot
-    = TPlot
-        { series : List Float
-        }
-
-
-tplot ys =
-    Svg.svg
-        [ width "1000", height "200", SvgA.viewBox "0 0 1000 200", style "border" "1px solid black" ]
-        [ Svg.line [ x1 "0", y1 "100", x2 "1000", y2 "100", SvgA.stroke "black" ] []
-        , Svg.polyline [ SvgA.fill "none", SvgA.stroke "pink", SvgA.points "20,100 40,60 70,80 100,20" ] []
-        ]
-
-
-tplotHelper ys =
-    let
-        s =
-            \i y -> String.fromInt i ++ "," ++ String.fromInt (round y)
-
-        bla =
-            List.indexedMap
-    in
-    bla
-
-
-type Centering
-    -- have some sort of complete setting for centering, as well as lower and upper bounds
-    -- can be fixed or dynamic
-    = Fixed Float
-    | Average
