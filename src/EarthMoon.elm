@@ -37,7 +37,7 @@ type alias Model =
     , runState : RunState
     , projection : Projection
     , frameTick : Float
-    , fpsHisto : List Float
+    , fpsPlot : P.Plot Float
     }
 
 
@@ -91,7 +91,7 @@ initModel =
         }
     , runState = Paused
     , frameTick = 0
-    , fpsHisto = []
+    , fpsPlot = {dataPoints = [], maxPoints = 300}
     }
 
 
@@ -116,7 +116,7 @@ initMoon =
 
 
 update : Msg -> Model -> ( Model, Cmd msg )
-update msg ({ runState, earth, moon, trail, projection, fpsHisto } as model) =
+update msg ({ runState, earth, moon, trail, projection, fpsPlot } as model) =
     case msg of
         Nope ->
             ( model, Cmd.none )
@@ -139,7 +139,7 @@ update msg ({ runState, earth, moon, trail, projection, fpsHisto } as model) =
                 | moon = moon_
                 , trail = trail_
                 , frameTick = dt
-                , fpsHisto = List.take 300 <| 1000 / dt :: fpsHisto
+                , fpsPlot = P.addDatum fpsPlot (1000/dt)
               }
             , Cmd.none
             )
@@ -178,7 +178,7 @@ view model =
             , Html.button [ onClick <| Perturb Faster ] [ Html.text "faster" ]
             ]
         , drawing model
-        , P.tplot model.fpsHisto
+        , P.draw (300, 150) model.fpsPlot
         , physicsPane model
         ]
 
