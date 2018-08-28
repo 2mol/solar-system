@@ -15,7 +15,7 @@ import Round
 import SketchPlane3d exposing (SketchPlane3d)
 import String
 import Svg exposing (Svg)
-import Svg.Attributes as SvgA exposing (height, width, x, y)
+import Svg.Attributes as SvgA exposing (height, width, x, x1, x2, y, y1, y2)
 import Vector3d exposing (Vector3d)
 
 
@@ -120,11 +120,17 @@ update msg ({ runState, earth, moon, trail, projection } as model) =
 
         Tick dt ->
             let
-                trail_ =
-                    List.take 50 <| moon.position :: trail
+                nSteps =
+                    500
+
+                timeStep =
+                    5000 / nSteps
 
                 moon_ =
-                    applyN 2000 (\m -> euler 3 ( earth, m )) moon
+                    applyN nSteps (\m -> euler timeStep ( earth, m )) moon
+
+                trail_ =
+                    List.take 50 <| moon.position :: trail
             in
             ( { model | moon = moon_, trail = trail_, dt = dt }, Cmd.none )
 
@@ -163,20 +169,9 @@ view model =
             , Html.button [ onClick <| Perturb Faster ] [ Html.text "faster" ]
             ]
         , drawing model
-        , Svg.svg
-            [ width "1000", height "200", SvgA.viewBox "0 0 1000 200", style "border" "1px solid black" ]
-            [ Svg.rect
-                [ x "2"
-                , y "2"
-                , width "996"
-                , height "196"
-                , SvgA.fill "transparent"
-                ]
-                []
-            ]
+        , tplot []
         , physicsPane model
         ]
-
 
 
 subscriptions : Model -> Sub Msg
@@ -323,21 +318,23 @@ euler dt ( fixedBody, movingBody ) =
         quot =
             dt * constG * fixedBody.mass / (x ^ 2 + y ^ 2 + z ^ 2) ^ (3 / 2)
 
-        ( xn, yn, zn ) =
-            ( x + u * dt
-            , y + v * dt
-            , z + w * dt
-            )
+        newPos =
+            Point3d.fromCoordinates
+                ( x + u * dt
+                , y + v * dt
+                , z + w * dt
+                )
 
-        ( un, vn, wn ) =
-            ( u - x * quot
-            , v - y * quot
-            , w - z * quot
-            )
+        newVel =
+            Vector3d.fromComponents
+                ( u - x * quot
+                , v - y * quot
+                , w - z * quot
+                )
     in
     { movingBody
-        | position = Point3d.fromCoordinates ( xn, yn, zn )
-        , velocity = Vector3d.fromComponents ( un, vn, wn )
+        | position = newPos
+        , velocity = newVel
     }
 
 
@@ -371,7 +368,8 @@ drawing { earth, moon, trail, projection } =
                 ++ [ drawBody projection earth, drawBody projection moon ]
     in
     Svg.svg
-        [ width "1000", height "600", SvgA.viewBox "-500 -300 1000 600"] --, onWheel Zoom ]
+        [ width "1000", height "600", SvgA.viewBox "-500 -300 1000 600" ]
+        --, onWheel Zoom ]
         everything
 
 
@@ -421,3 +419,39 @@ drawTrail { plane, center, scale } i position =
         [ Svg.circle2d [ SvgA.fill "#fff" ]
             (Circle2d.withRadius 2 scaledPosition)
         ]
+
+
+
+---
+
+
+type TPlot
+    = TPlot
+        { series : List Float
+        }
+
+
+tplot ys =
+    Svg.svg
+        [ width "1000", height "200", SvgA.viewBox "0 0 1000 200", style "border" "1px solid black" ]
+        [ Svg.line [ x1 "0", y1 "100", x2 "1000", y2 "100", SvgA.stroke "black" ] []
+        , Svg.polyline [ SvgA.fill "none", SvgA.stroke "pink", SvgA.points "20,100 40,60 70,80 100,20" ] []
+        ]
+
+
+tplotHelper ys =
+    let
+        s =
+            \i y -> String.fromInt i ++ "," ++ String.fromInt (round y)
+
+        bla =
+            List.indexedMap
+    in
+    bla
+
+
+type Centering
+    -- have some sort of complete setting for centering, as well as lower and upper bounds
+    -- can be fixed or dynamic
+    = Fixed Float
+    | Average
