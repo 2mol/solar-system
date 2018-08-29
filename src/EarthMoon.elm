@@ -142,7 +142,7 @@ update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, po
                     applyN nSteps (\m -> euler timeStep ( earth, m )) moon
 
                 trail_ =
-                    List.take 1500 <| moon.position :: trail
+                    List.take 500 <| moon.position :: trail
 
                 fps =
                     1000 / dt
