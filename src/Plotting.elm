@@ -98,6 +98,9 @@ draw ( width, height ) color (Plot p) =
         hstr =
             String.fromInt height
 
+        viewBox =
+            String.join " " [ "0", "0", wstr, hstr ]
+
         hstrHalf =
             toFloat height
                 / 2
@@ -115,8 +118,20 @@ draw ( width, height ) color (Plot p) =
             (toFloat height - scale avg) - 3
                 |> String.fromFloat
 
-        viewBox =
-            String.join " " [ "0", "0", wstr, hstr ]
+        avgString =
+            Round.round 1 avg
+
+        avgLabelPos =
+            String.fromInt <| labelPosRight width avgString
+
+        yMinString =
+            String.fromFloat yMin
+
+        yMaxString =
+            String.fromFloat yMax
+
+        bottomPos =
+            String.fromInt <| height - 4
     in
     Svg.svg
         [ S.width wstr
@@ -129,10 +144,18 @@ draw ( width, height ) color (Plot p) =
         [ Svg.text_ [ S.x "0.3em", S.y "1em" ] [ Svg.text p.name ]
         , Svg.line [ S.x1 "0", S.y1 hstrHalf, S.x2 wstr, S.y2 hstrHalf, S.stroke "black" ] []
         , Svg.polyline [ S.fill "none", S.stroke color, S.points coordString ] []
-        , Svg.text_ [ S.x (String.fromInt <| width - 30), S.y hAvgLabel ] [ Svg.text (Round.round 1 avg) ]
+        , Svg.text_ [ S.x avgLabelPos, S.y hAvgLabel ] [ Svg.text avgString ]
         , Svg.line [ S.x1 "0", S.y1 hstrAvg, S.x2 wstr, S.y2 hstrAvg, S.stroke "#bbb" ] []
+        , Svg.text_ [ S.x (String.fromInt <| labelPosRight width yMaxString), S.y "1em" ] [ Svg.text yMaxString ]
+        , Svg.text_ [ S.x (String.fromInt <| labelPosRight width yMinString), S.y bottomPos ] [ Svg.text yMinString ]
         ]
 
+labelPosRight : Int -> String -> Int
+labelPosRight width label =
+    width - (round <| toFloat (String.length label) * 7.22) - 3
+
+-- labelPosBottom : Int -> Int
+-- labelPosBottom height =
 
 median : Array Float -> Float
 median arr =

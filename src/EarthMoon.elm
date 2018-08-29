@@ -97,7 +97,7 @@ initModel =
     , fpsPlot = P.new "fps" |> P.setRange (P.Fixed (0, 120))
     , kineticPlot = P.new "kinetic energy"
     , potentialPlot = P.new "potential energy"
-    , totalEnergyPlot = P.new "total energy" |> P.setRange (P.Fixed (-4e28, -3.98e28))
+    , totalEnergyPlot = P.new "total energy"
     }
 
 
@@ -142,7 +142,7 @@ update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, po
                     List.take 1500 <| moon.position :: trail
 
                 fps =
-                    clamp 0 80 (1000 / dt)
+                    1000 / dt
 
                 kinetic =
                     kineticEnergy earth moon
