@@ -1,13 +1,13 @@
 module Sup exposing (main)
 
 import Browser
-import Browser.Events exposing (onAnimationFrameDelta)
+import Browser.Events as Browser
 import Circle2d
 import Geometry.Svg as Svg
 import Html exposing (Html)
 import Html.Attributes exposing (style)
 import Html.Events exposing (on, onClick)
-import Json.Decode as Json
+import Json.Decode as Decode
 import Plane3d
 import Plotting as P
 import Point2d exposing (Point2d)
@@ -31,12 +31,13 @@ main =
 
 
 type alias Model =
-    { earth : Body
+    { runState : RunState
+    , mouseInDrawing : Bool
+    , frameTick : Float
+    , earth : Body
     , moon : Body
     , trail : List Point3d
-    , runState : RunState
     , projection : Projection
-    , frameTick : Float
     , fpsPlot : P.Plot Float
     , kineticPlot : P.Plot Float
     , potentialPlot : P.Plot Float
@@ -75,6 +76,7 @@ type Msg
     | ToggleRunState
     | Perturb Perturbation
     | Zoom Int
+    | KeyPress String
 
 
 init : ( Model, Cmd msg )
@@ -84,7 +86,10 @@ init =
 
 initModel : Model
 initModel =
-    { earth = initEarth
+    { mouseInDrawing = False
+    , runState = Paused
+    , frameTick = 0
+    , earth = initEarth
     , moon = initMoon
     , trail = []
     , projection =
@@ -92,9 +97,7 @@ initModel =
         , center = Point2d.fromCoordinates ( 0, 0 )
         , scale = 7.0e-7
         }
-    , runState = Paused
-    , frameTick = 0
-    , fpsPlot = P.new "fps" |> P.setRange (P.Fixed (0, 120))
+    , fpsPlot = P.new "fps" |> P.setRange (P.Fixed ( 0, 120 ))
     , kineticPlot = P.new "kinetic energy"
     , potentialPlot = P.new "potential energy"
     , totalEnergyPlot = P.new "total energy"
@@ -162,6 +165,14 @@ update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, po
             , Cmd.none
             )
 
+        KeyPress s ->
+            case s of
+                "Enter" ->
+                    update ToggleRunState model
+
+                _ ->
+                    ( model, Cmd.none )
+
         ToggleRunState ->
             ( { model | runState = toggleRunState runState }, Cmd.none )
 
@@ -204,13 +215,23 @@ view model =
         ]
 
 
+keyDecoder : Decode.Decoder Msg
+keyDecoder =
+    Decode.field "key" Decode.string
+        |> Decode.map KeyPress
+
+
 subscriptions : Model -> Sub Msg
 subscriptions { runState } =
-    if runState == Paused then
-        Sub.none
+    let
+        tick =
+            if runState == Paused then
+                Sub.none
 
-    else
-        onAnimationFrameDelta Tick
+            else
+                Browser.onAnimationFrameDelta Tick
+    in
+    Sub.batch [ tick, Browser.onKeyPress keyDecoder ]
 
 
 
@@ -303,7 +324,7 @@ toggleRunState runState =
 
 onWheel : (Int -> msg) -> Html.Attribute msg
 onWheel message =
-    on "wheel" (Json.map message (Json.at [ "deltaY" ] Json.int))
+    on "wheel" (Decode.map message (Decode.at [ "deltaY" ] Decode.int))
 
 
 
