@@ -133,13 +133,13 @@ update msg ({ runState, earth, moon, trail, projection, fpsPlot } as model) =
                     applyN nSteps (\m -> euler timeStep ( earth, m )) moon
 
                 trail_ =
-                    List.take 1000 <| moon.position :: trail
+                    List.take 100 <| moon.position :: trail
             in
             ( { model
                 | moon = moon_
                 , trail = trail_
                 , frameTick = dt
-                , fpsPlot = P.addDataPoint fpsPlot (1000/dt)
+                , fpsPlot = P.addDataPoint fpsPlot (1000 / dt)
               }
             , Cmd.none
             )
@@ -178,7 +178,7 @@ view model =
             , Html.button [ onClick <| Perturb Faster ] [ Html.text "faster" ]
             ]
         , drawing model
-        , P.draw (300, 120) model.fpsPlot
+        , P.draw ( 1000, 120 ) model.fpsPlot
         , physicsPane model
         ]
 
@@ -364,7 +364,8 @@ drawing { earth, moon, trail, projection } =
 
         everything =
             [ Svg.rect [ SvgA.x "-500", SvgA.y "-300", SvgA.width "100%", SvgA.height "100%", SvgA.fill "#f7f7f7" ] [] ]
-                ++ List.indexedMap (drawTrail projection) trail
+                -- ++ List.map (drawTrail projection) trail
+                ++ [drawTrailFast projection trail]
                 ++ [ drawBody projection earth, drawBody projection moon ]
     in
     Svg.svg
@@ -407,8 +408,8 @@ drawBody { plane, center, scale } { mass, position, radius, atmosphere } =
         )
 
 
-drawTrail : Projection -> Int -> Point3d -> Svg msg
-drawTrail { plane, center, scale } i position =
+drawTrail : Projection -> Point3d -> Svg msg
+drawTrail { plane, center, scale } position =
     let
         scaledPosition =
             position
@@ -420,6 +421,17 @@ drawTrail { plane, center, scale } i position =
             (Circle2d.withRadius 2 scaledPosition)
         ]
 
+drawTrailFast : Projection -> List Point3d -> Svg msg
+drawTrailFast { plane, center, scale } positions =
+    let
+        scaledPositions =
+            positions
+                |> List.map (Point3d.projectInto plane)
+                |> List.map (Point2d.scaleAbout center scale)
+                |> List.map Point2d.coordinates
 
-
----
+        coordString =
+            List.map (\(x, y) -> String.fromFloat x ++ "," ++ String.fromFloat y) scaledPositions
+                |> String.join " "
+    in
+    Svg.polyline [ SvgA.fill "none", SvgA.stroke "white", SvgA.strokeWidth "2", SvgA.points coordString ] []
