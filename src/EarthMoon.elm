@@ -91,7 +91,7 @@ initModel =
         }
     , runState = Paused
     , frameTick = 0
-    , fpsPlot = {dataPoints = [], maxPoints = 300}
+    , fpsPlot = P.emptyPlot 500 "fps"
     }
 
 
@@ -133,13 +133,13 @@ update msg ({ runState, earth, moon, trail, projection, fpsPlot } as model) =
                     applyN nSteps (\m -> euler timeStep ( earth, m )) moon
 
                 trail_ =
-                    List.take 50 <| moon.position :: trail
+                    List.take 1000 <| moon.position :: trail
             in
             ( { model
                 | moon = moon_
                 , trail = trail_
                 , frameTick = dt
-                , fpsPlot = P.addDatum fpsPlot (1000/dt)
+                , fpsPlot = P.addDataPoint fpsPlot (1000/dt)
               }
             , Cmd.none
             )
@@ -178,7 +178,7 @@ view model =
             , Html.button [ onClick <| Perturb Faster ] [ Html.text "faster" ]
             ]
         , drawing model
-        , P.draw (300, 150) model.fpsPlot
+        , P.draw (300, 120) model.fpsPlot
         , physicsPane model
         ]
 
