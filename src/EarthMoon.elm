@@ -94,10 +94,10 @@ initModel =
         }
     , runState = Paused
     , frameTick = 0
-    , fpsPlot = P.new 500 "fps"
-    , kineticPlot = P.new 500 "kinetic energy"
-    , potentialPlot = P.new 500 "potential energy"
-    , totalEnergyPlot = P.new 500 "total energy"
+    , fpsPlot = P.new 500 "fps" (P.Fixed (0, 120))
+    , kineticPlot = P.new 500 "kinetic energy" P.Dynamic
+    , potentialPlot = P.new 500 "potential energy" P.Dynamic
+    , totalEnergyPlot = P.new 500 "total energy" P.Dynamic
     }
 
 

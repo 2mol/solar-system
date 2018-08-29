@@ -14,12 +14,13 @@ type Plot a
         { name : String
         , dataPoints : Array a
         , nPoints : Int
+        , range : Range
         }
 
 
-new : Int -> String -> Plot a
-new n name =
-    Plot { name = name, dataPoints = A.empty, nPoints = n }
+new : Int -> String -> Range -> Plot a
+new n name r =
+    Plot { name = name, dataPoints = A.empty, nPoints = n, range = r }
 
 
 addDataPoint : Plot a -> a -> Plot a
@@ -41,9 +42,9 @@ replaceData (Plot plot) xs =
 
 
 type Range
-    = Fixed ( Float, Float )
-    | Dynamic -- adapts to max and min, making the viewport fit the plot
-    | DynamicSym -- reacts to max and min values, but keeping the median in the center -> Symmetric
+    = Fixed ( Int, Int )
+    | DynamicRange Int
+    | Dynamic
 
 
 draw : ( Int, Int ) -> String -> Plot Float -> Html msg
