@@ -94,10 +94,10 @@ initModel =
         }
     , runState = Paused
     , frameTick = 0
-    , fpsPlot = P.new 500 "fps" (P.Fixed (0, 120))
-    , kineticPlot = P.new 500 "kinetic energy" P.Dynamic
-    , potentialPlot = P.new 500 "potential energy" P.Dynamic
-    , totalEnergyPlot = P.new 500 "total energy" P.Dynamic
+    , fpsPlot = P.new "fps" |> P.setRange (P.Fixed (0, 120))
+    , kineticPlot = P.new "kinetic energy"
+    , potentialPlot = P.new "potential energy"
+    , totalEnergyPlot = P.new "total energy" |> P.setRange (P.Fixed (-4e28, -3.98e28))
     }
 
 
@@ -139,10 +139,10 @@ update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, po
                     applyN nSteps (\m -> euler timeStep ( earth, m )) moon
 
                 trail_ =
-                    List.take 150 <| moon.position :: trail
+                    List.take 1500 <| moon.position :: trail
 
                 fps =
-                    1000 / dt
+                    clamp 0 80 (1000 / dt)
 
                 kinetic =
                     kineticEnergy earth moon

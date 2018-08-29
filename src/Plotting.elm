@@ -1,12 +1,12 @@
-module Plotting exposing (Plot, Range(..), addDataPoint, draw, new)
+module Plotting exposing (Plot, Range(..), addDataPoint, draw, new, setMaxPoints, setRange)
 
 import Array as A exposing (Array)
 import Html exposing (Html)
-import Html.Attributes exposing (style)
+import Html.Attributes as HtmlA exposing (style)
 import Maybe
+import Round
 import Svg exposing (Svg)
 import Svg.Attributes as S
-import Round
 
 
 type Plot a
@@ -18,9 +18,19 @@ type Plot a
         }
 
 
-new : Int -> String -> Range -> Plot a
-new n name r =
-    Plot { name = name, dataPoints = A.empty, nPoints = n, range = r }
+new : String -> Plot a
+new name =
+    Plot { name = name, dataPoints = A.empty, nPoints = 500, range = Dynamic }
+
+
+setMaxPoints : Int -> Plot a -> Plot a
+setMaxPoints n (Plot plot) =
+    Plot { plot | nPoints = n }
+
+
+setRange : Range -> Plot a -> Plot a
+setRange r (Plot plot) =
+    Plot { plot | range = r }
 
 
 addDataPoint : Plot a -> a -> Plot a
@@ -42,16 +52,31 @@ replaceData (Plot plot) xs =
 
 
 type Range
-    = Fixed ( Int, Int )
-    | DynamicRange Int
+    = Fixed ( Float, Float )
     | Dynamic
 
 
 draw : ( Int, Int ) -> String -> Plot Float -> Html msg
-draw ( width, height ) color (Plot plot) =
+draw ( width, height ) color (Plot p) =
     let
         dx =
-            toFloat width / toFloat (plot.nPoints - 1)
+            toFloat width / toFloat (p.nPoints - 1)
+
+        ( yMin, yMax ) =
+            case p.range of
+                Dynamic ->
+                    ( Maybe.withDefault 0 <| List.minimum <| A.toList p.dataPoints
+                    , Maybe.withDefault 100 <| List.maximum <| A.toList p.dataPoints
+                    )
+
+                Fixed ( y1, y2 ) ->
+                    ( y1, y2 )
+
+        range =
+            yMax - yMin
+
+        scale y =
+            (y - yMin) / range * toFloat height
 
         coordPairString i y =
             String.join
@@ -61,7 +86,8 @@ draw ( width, height ) color (Plot plot) =
                 ]
 
         coordString =
-            plot.dataPoints
+            p.dataPoints
+                |> A.map scale
                 |> A.indexedMap coordPairString
                 |> A.toList
                 |> String.join " "
@@ -73,19 +99,20 @@ draw ( width, height ) color (Plot plot) =
             String.fromInt height
 
         hstrHalf =
-            toFloat height / 2
+            toFloat height
+                / 2
                 |> round
                 |> String.fromInt
 
         avg =
-            average plot.dataPoints
+            average p.dataPoints
 
         hstrAvg =
-            toFloat height - avg
+            toFloat height - (scale avg)
                 |> String.fromFloat
 
         hAvgLabel =
-            toFloat height - avg - 3
+            (toFloat height - scale avg) - 3
                 |> String.fromFloat
 
         viewBox =
@@ -99,7 +126,7 @@ draw ( width, height ) color (Plot plot) =
         , S.fontFamily "Courier New"
         , S.fontSize "12"
         ]
-        [ Svg.text_ [ S.x "0.3em", S.y "1em" ] [ Svg.text plot.name ]
+        [ Svg.text_ [ S.x "0.3em", S.y "1em" ] [ Svg.text p.name ]
         , Svg.line [ S.x1 "0", S.y1 hstrHalf, S.x2 wstr, S.y2 hstrHalf, S.stroke "black" ] []
         , Svg.polyline [ S.fill "none", S.stroke color, S.points coordString ] []
         , Svg.text_ [ S.x (String.fromInt <| width - 30), S.y hAvgLabel ] [ Svg.text (Round.round 1 avg) ]
@@ -119,6 +146,7 @@ median arr =
         |> A.get m
         |> Maybe.withDefault 0
 
+
 average : Array Float -> Float
 average arr =
-    (A.foldl (+) 0 arr) / (toFloat <| A.length arr)
+    A.foldl (+) 0 arr / (toFloat <| A.length arr)
