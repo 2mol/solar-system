@@ -38,6 +38,9 @@ type alias Model =
     , projection : Projection
     , frameTick : Float
     , fpsPlot : P.Plot Float
+    , kineticPlot : P.Plot Float
+    , potentialPlot : P.Plot Float
+    , totalEnergyPlot : P.Plot Float
     }
 
 
@@ -91,7 +94,10 @@ initModel =
         }
     , runState = Paused
     , frameTick = 0
-    , fpsPlot = P.emptyPlot 500 "fps"
+    , fpsPlot = P.new 500 "fps"
+    , kineticPlot = P.new 500 "kinetic energy"
+    , potentialPlot = P.new 500 "potential energy"
+    , totalEnergyPlot = P.new 500 "total energy"
     }
 
 
@@ -116,7 +122,7 @@ initMoon =
 
 
 update : Msg -> Model -> ( Model, Cmd msg )
-update msg ({ runState, earth, moon, trail, projection, fpsPlot } as model) =
+update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, potentialPlot, totalEnergyPlot } as model) =
     case msg of
         Nope ->
             ( model, Cmd.none )
@@ -133,13 +139,25 @@ update msg ({ runState, earth, moon, trail, projection, fpsPlot } as model) =
                     applyN nSteps (\m -> euler timeStep ( earth, m )) moon
 
                 trail_ =
-                    List.take 100 <| moon.position :: trail
+                    List.take 150 <| moon.position :: trail
+
+                fps =
+                    1000 / dt
+
+                kinetic =
+                    kineticEnergy earth moon
+
+                potential =
+                    potentialEnergy moon earth
             in
             ( { model
                 | moon = moon_
                 , trail = trail_
                 , frameTick = dt
-                , fpsPlot = P.addDataPoint fpsPlot (1000 / dt)
+                , fpsPlot = P.addDataPoint fpsPlot fps
+                , kineticPlot = P.addDataPoint kineticPlot kinetic
+                , potentialPlot = P.addDataPoint potentialPlot potential
+                , totalEnergyPlot = P.addDataPoint totalEnergyPlot (kinetic + potential)
               }
             , Cmd.none
             )
@@ -178,7 +196,10 @@ view model =
             , Html.button [ onClick <| Perturb Faster ] [ Html.text "faster" ]
             ]
         , drawing model
-        , P.draw ( 1000, 120 ) model.fpsPlot
+        , P.draw ( 500, 120 ) "pink" model.fpsPlot
+        , P.draw ( 500, 120 ) "blue" model.kineticPlot
+        , P.draw ( 500, 120 ) "yellow" model.potentialPlot
+        , P.draw ( 500, 120 ) "green" model.totalEnergyPlot
         , physicsPane model
         ]
 
@@ -229,12 +250,9 @@ physicsPane { earth, moon, frameTick, projection } =
         , style "font-size" "0.6em"
         , style "border" "1px solid black"
         , style "table-layout" "fixed"
+        , style "margin" "5px"
         ]
         [ Html.tr []
-            [ Html.td tdStyleLeft [ Html.text "fps" ]
-            , Html.td tdStyleRight [ Html.text <| Round.round 2 (1000 / frameTick) ]
-            ]
-        , Html.tr []
             [ Html.td tdStyleLeft [ Html.text "scale" ]
             , Html.td tdStyleRight [ Html.text <| Round.round 10 projection.scale ]
             ]
@@ -365,7 +383,7 @@ drawing { earth, moon, trail, projection } =
         everything =
             [ Svg.rect [ SvgA.x "-500", SvgA.y "-300", SvgA.width "100%", SvgA.height "100%", SvgA.fill "#f7f7f7" ] [] ]
                 -- ++ List.map (drawTrail projection) trail
-                ++ [drawTrailFast projection trail]
+                ++ [ drawTrailFast projection trail ]
                 ++ [ drawBody projection earth, drawBody projection moon ]
     in
     Svg.svg
@@ -421,6 +439,7 @@ drawTrail { plane, center, scale } position =
             (Circle2d.withRadius 2 scaledPosition)
         ]
 
+
 drawTrailFast : Projection -> List Point3d -> Svg msg
 drawTrailFast { plane, center, scale } positions =
     let
@@ -431,7 +450,7 @@ drawTrailFast { plane, center, scale } positions =
                 |> List.map Point2d.coordinates
 
         coordString =
-            List.map (\(x, y) -> String.fromFloat x ++ "," ++ String.fromFloat y) scaledPositions
+            List.map (\( x, y ) -> String.fromFloat x ++ "," ++ String.fromFloat y) scaledPositions
                 |> String.join " "
     in
     Svg.polyline [ SvgA.fill "none", SvgA.stroke "white", SvgA.strokeWidth "2", SvgA.points coordString ] []

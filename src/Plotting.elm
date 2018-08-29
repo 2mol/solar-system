@@ -1,4 +1,4 @@
-module Plotting exposing (Plot, Range(..), addDataPoint, draw, emptyPlot)
+module Plotting exposing (Plot, Range(..), addDataPoint, draw, new)
 
 import Array as A exposing (Array)
 import Html exposing (Html)
@@ -17,8 +17,8 @@ type Plot a
         }
 
 
-emptyPlot : Int -> String -> Plot a
-emptyPlot n name =
+new : Int -> String -> Plot a
+new n name =
     Plot { name = name, dataPoints = A.empty, nPoints = n }
 
 
@@ -46,8 +46,8 @@ type Range
     | DynamicSym -- reacts to max and min values, but keeping the median in the center -> Symmetric
 
 
-draw : ( Int, Int ) -> Plot Float -> Html msg
-draw ( width, height ) (Plot plot) =
+draw : ( Int, Int ) -> String -> Plot Float -> Html msg
+draw ( width, height ) color (Plot plot) =
     let
         dx =
             toFloat width / toFloat (plot.nPoints - 1)
@@ -83,6 +83,10 @@ draw ( width, height ) (Plot plot) =
             toFloat height - avg
                 |> String.fromFloat
 
+        hAvgLabel =
+            toFloat height - avg - 3
+                |> String.fromFloat
+
         viewBox =
             String.join " " [ "0", "0", wstr, hstr ]
     in
@@ -96,8 +100,8 @@ draw ( width, height ) (Plot plot) =
         ]
         [ Svg.text_ [ S.x "0.3em", S.y "1em" ] [ Svg.text plot.name ]
         , Svg.line [ S.x1 "0", S.y1 hstrHalf, S.x2 wstr, S.y2 hstrHalf, S.stroke "black" ] []
-        , Svg.polyline [ S.fill "none", S.stroke "pink", S.points coordString ] []
-        , Svg.text_ [ S.x (String.fromInt <| width - 30), S.y hstrAvg ] [ Svg.text (Round.round 1 avg) ]
+        , Svg.polyline [ S.fill "none", S.stroke color, S.points coordString ] []
+        , Svg.text_ [ S.x (String.fromInt <| width - 30), S.y hAvgLabel ] [ Svg.text (Round.round 1 avg) ]
         , Svg.line [ S.x1 "0", S.y1 hstrAvg, S.x2 wstr, S.y2 hstrAvg, S.stroke "#bbb" ] []
         ]
 
