@@ -201,16 +201,17 @@ view model =
         , style "flex-direction" "column"
         , style "align-items" "center"
         ]
-        [ Html.div []
+        [ drawing model
+        , Html.div []
             [ Html.button [ onClick ToggleRunState ] [ Html.text "play/pause" ]
             , Html.button [ onClick <| Perturb Brake ] [ Html.text "brake" ]
             , Html.button [ onClick <| Perturb Faster ] [ Html.text "faster" ]
             ]
-        , drawing model
-        , P.draw ( 500, 120 ) "pink" model.fpsPlot
-        , P.draw ( 500, 120 ) "blue" model.kineticPlot
-        , P.draw ( 500, 120 ) "yellow" model.potentialPlot
-        , P.draw ( 500, 120 ) "green" model.totalEnergyPlot
+
+        , P.draw ( 750, 100 ) "pink" model.fpsPlot
+        , P.draw ( 750, 100 ) "blue" model.kineticPlot
+        , P.draw ( 750, 100 ) "yellow" model.potentialPlot
+        , P.draw ( 750, 100 ) "green" model.totalEnergyPlot
         , physicsPane model
         ]
 

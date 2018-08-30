@@ -66,7 +66,7 @@ draw ( width, height ) color (Plot p) =
             case p.range of
                 Dynamic ->
                     ( Maybe.withDefault 0 <| List.minimum <| A.toList p.dataPoints
-                    , Maybe.withDefault 100 <| List.maximum <| A.toList p.dataPoints
+                    , Maybe.withDefault 0 <| List.maximum <| A.toList p.dataPoints
                     )
 
                 Fixed ( y1, y2 ) ->
