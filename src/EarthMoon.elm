@@ -73,10 +73,15 @@ type RunState
 type Msg
     = Nope
     | Tick Float
-    | ToggleRunState
-    | Perturb Perturbation
+    | Act Action
     | Zoom Int
     | KeyPress String
+
+
+type Action
+    = Brake
+    | Faster
+    | StartPause
 
 
 init : ( Model, Cmd msg )
@@ -168,16 +173,13 @@ update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, po
         KeyPress s ->
             case s of
                 "Enter" ->
-                    update ToggleRunState model
+                    update (Act StartPause) model
 
                 _ ->
                     ( model, Cmd.none )
 
-        ToggleRunState ->
-            ( { model | runState = toggleRunState runState }, Cmd.none )
-
-        Perturb pert ->
-            ( { model | moon = annoy pert moon }, Cmd.none )
+        Act action ->
+            handleAction action model
 
         Zoom i ->
             let
@@ -203,7 +205,7 @@ view model =
             , P.draw ( 750, 100 ) "yellow" model.potentialPlot
             , P.draw ( 750, 100 ) "green" model.totalEnergyPlot
             ]
-                |> List.map (\e -> Html.div [] [e])
+                |> List.map (\e -> Html.div [] [ e ])
     in
     Html.div
         [ style "display" "flex"
@@ -211,20 +213,22 @@ view model =
         , style "align-items" "center"
         ]
         ([ drawing model
-        , Html.div [style "margin" "0.4em"]
-            [ Html.button [ onClick ToggleRunState ] [ Html.text "play/pause" ]
-            , Html.button [ onClick <| Perturb Faster ] [ Html.text "reset" ]
+         , Html.div [ style "margin" "0.4em" ]
+            [ Html.button [ onClick <| Act StartPause ] [ Html.text "play/pause" ]
+            , Html.button [ onClick <| Act Faster ] [ Html.text "reset" ]
             , Html.text " - "
-            , Html.button [ onClick <| Perturb Brake ] [ Html.text "brake" ]
-            , Html.button [ onClick <| Perturb Faster ] [ Html.text "faster" ]
+            , Html.button [ onClick <| Act Brake ] [ Html.text "brake" ]
+            , Html.button [ onClick <| Act Faster ] [ Html.text "faster" ]
             ]
 
-        -- , P.draw ( 750, 100 ) "pink" model.fpsPlot
-        -- , P.draw ( 750, 100 ) "blue" model.kineticPlot
-        -- , P.draw ( 750, 100 ) "yellow" model.potentialPlot
-        -- , P.draw ( 750, 100 ) "green" model.totalEnergyPlot
-        -- , physicsPane model
-        ] ++ plots)
+         -- , P.draw ( 750, 100 ) "pink" model.fpsPlot
+         -- , P.draw ( 750, 100 ) "blue" model.kineticPlot
+         -- , P.draw ( 750, 100 ) "yellow" model.potentialPlot
+         -- , P.draw ( 750, 100 ) "green" model.totalEnergyPlot
+         -- , physicsPane model
+         ]
+            ++ plots
+        )
 
 
 keyDecoder : Decode.Decoder Msg
@@ -250,18 +254,21 @@ subscriptions { runState } =
 --
 
 
-type Perturbation
-    = Brake
-    | Faster
+handleAction : Action -> Model -> ( Model, Cmd msg )
+handleAction act ({ runState, earth, moon } as model) =
+    case act of
+        StartPause ->
+            ( { model | runState = toggleRunState runState }, Cmd.none )
 
-
-annoy perturbation thing =
-    case perturbation of
         Brake ->
-            { thing | velocity = Vector3d.scaleBy 0.8 thing.velocity }
+            ( { model | moon = accelerate 0.8 moon }, Cmd.none )
 
         Faster ->
-            { thing | velocity = Vector3d.scaleBy 1.2 thing.velocity }
+            ( { model | moon = accelerate 1.2 moon }, Cmd.none )
+
+
+accelerate scale thing =
+    { thing | velocity = Vector3d.scaleBy scale thing.velocity }
 
 
 
