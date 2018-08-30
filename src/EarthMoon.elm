@@ -82,6 +82,7 @@ type Action
     = Brake
     | Faster
     | StartPause
+    | Reset
 
 
 init : ( Model, Cmd msg )
@@ -215,7 +216,7 @@ view model =
         ([ drawing model
          , Html.div [ style "margin" "0.4em" ]
             [ Html.button [ onClick <| Act StartPause ] [ Html.text "play/pause" ]
-            , Html.button [ onClick <| Act Faster ] [ Html.text "reset" ]
+            , Html.button [ onClick <| Act Reset ] [ Html.text "reset" ]
             , Html.text " - "
             , Html.button [ onClick <| Act Brake ] [ Html.text "brake" ]
             , Html.button [ onClick <| Act Faster ] [ Html.text "faster" ]
@@ -259,6 +260,9 @@ handleAction act ({ runState, earth, moon } as model) =
     case act of
         StartPause ->
             ( { model | runState = toggleRunState runState }, Cmd.none )
+
+        Reset ->
+            ( initModel, Cmd.none )
 
         Brake ->
             ( { model | moon = accelerate 0.8 moon }, Cmd.none )
