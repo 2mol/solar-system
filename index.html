@@ -6911,7 +6911,7 @@ var author$project$Plotting$draw = F3(
 							elm$core$Array$toList(p.dataPoints))),
 					A2(
 						elm$core$Maybe$withDefault,
-						100,
+						0,
 						elm$core$List$maximum(
 							elm$core$Array$toList(p.dataPoints))));
 			} else {
@@ -7482,6 +7482,7 @@ var author$project$Sup$view = function (model) {
 			]),
 		_List_fromArray(
 			[
+				author$project$Sup$drawing(model),
 				A2(
 				elm$html$Html$div,
 				_List_Nil,
@@ -7520,25 +7521,24 @@ var author$project$Sup$view = function (model) {
 								elm$html$Html$text('faster')
 							]))
 					])),
-				author$project$Sup$drawing(model),
 				A3(
 				author$project$Plotting$draw,
-				_Utils_Tuple2(500, 120),
+				_Utils_Tuple2(750, 100),
 				'pink',
 				model.fpsPlot),
 				A3(
 				author$project$Plotting$draw,
-				_Utils_Tuple2(500, 120),
+				_Utils_Tuple2(750, 100),
 				'blue',
 				model.kineticPlot),
 				A3(
 				author$project$Plotting$draw,
-				_Utils_Tuple2(500, 120),
+				_Utils_Tuple2(750, 100),
 				'yellow',
 				model.potentialPlot),
 				A3(
 				author$project$Plotting$draw,
-				_Utils_Tuple2(500, 120),
+				_Utils_Tuple2(750, 100),
 				'green',
 				model.totalEnergyPlot),
 				author$project$Sup$physicsPane(model)
