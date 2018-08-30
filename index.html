@@ -6098,36 +6098,10 @@ var author$project$Plotting$addDataPoint = F2(
 				plot,
 				{dataPoints: newDataPoints}));
 	});
-var author$project$Sup$ToggleRunState = {$: 'ToggleRunState'};
-var ianmackenzie$elm_geometry$Vector3d$components = function (_n0) {
-	var components_ = _n0.a;
-	return components_;
+var author$project$Sup$Act = function (a) {
+	return {$: 'Act', a: a};
 };
-var ianmackenzie$elm_geometry$Vector3d$scaleBy = F2(
-	function (scale, vector) {
-		var _n0 = ianmackenzie$elm_geometry$Vector3d$components(vector);
-		var x = _n0.a;
-		var y = _n0.b;
-		var z = _n0.c;
-		return ianmackenzie$elm_geometry$Vector3d$fromComponents(
-			_Utils_Tuple3(x * scale, y * scale, z * scale));
-	});
-var author$project$Sup$annoy = F2(
-	function (perturbation, thing) {
-		if (perturbation.$ === 'Brake') {
-			return _Utils_update(
-				thing,
-				{
-					velocity: A2(ianmackenzie$elm_geometry$Vector3d$scaleBy, 0.8, thing.velocity)
-				});
-		} else {
-			return _Utils_update(
-				thing,
-				{
-					velocity: A2(ianmackenzie$elm_geometry$Vector3d$scaleBy, 1.2, thing.velocity)
-				});
-		}
-	});
+var author$project$Sup$StartPause = {$: 'StartPause'};
 var author$project$Sup$applyN = F3(
 	function (n, fun, input) {
 		applyN:
@@ -6150,6 +6124,10 @@ var elm$core$Basics$pow = _Basics_pow;
 var ianmackenzie$elm_geometry$Point3d$coordinates = function (_n0) {
 	var coordinates_ = _n0.a;
 	return coordinates_;
+};
+var ianmackenzie$elm_geometry$Vector3d$components = function (_n0) {
+	var components_ = _n0.a;
+	return components_;
 };
 var author$project$Sup$euler = F2(
 	function (dt, _n0) {
@@ -6174,6 +6152,65 @@ var author$project$Sup$euler = F2(
 		return _Utils_update(
 			movingBody,
 			{position: newPos, velocity: newVel});
+	});
+var ianmackenzie$elm_geometry$Vector3d$scaleBy = F2(
+	function (scale, vector) {
+		var _n0 = ianmackenzie$elm_geometry$Vector3d$components(vector);
+		var x = _n0.a;
+		var y = _n0.b;
+		var z = _n0.c;
+		return ianmackenzie$elm_geometry$Vector3d$fromComponents(
+			_Utils_Tuple3(x * scale, y * scale, z * scale));
+	});
+var author$project$Sup$accelerate = F2(
+	function (scale, thing) {
+		return _Utils_update(
+			thing,
+			{
+				velocity: A2(ianmackenzie$elm_geometry$Vector3d$scaleBy, scale, thing.velocity)
+			});
+	});
+var author$project$Sup$Running = {$: 'Running'};
+var author$project$Sup$toggleRunState = function (runState) {
+	if (runState.$ === 'Paused') {
+		return author$project$Sup$Running;
+	} else {
+		return author$project$Sup$Paused;
+	}
+};
+var author$project$Sup$handleAction = F2(
+	function (act, model) {
+		var runState = model.runState;
+		var earth = model.earth;
+		var moon = model.moon;
+		switch (act.$) {
+			case 'StartPause':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							runState: author$project$Sup$toggleRunState(runState)
+						}),
+					elm$core$Platform$Cmd$none);
+			case 'Reset':
+				return _Utils_Tuple2(author$project$Sup$initModel, elm$core$Platform$Cmd$none);
+			case 'Brake':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							moon: A2(author$project$Sup$accelerate, 0.8, moon)
+						}),
+					elm$core$Platform$Cmd$none);
+			default:
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							moon: A2(author$project$Sup$accelerate, 1.2, moon)
+						}),
+					elm$core$Platform$Cmd$none);
+		}
 	});
 var ianmackenzie$elm_geometry$Vector3d$squaredLength = function (vector) {
 	var _n0 = ianmackenzie$elm_geometry$Vector3d$components(vector);
@@ -6223,14 +6260,6 @@ var author$project$Sup$potentialEnergy = F2(
 		var r = A2(ianmackenzie$elm_geometry$Point3d$distanceFrom, body1.position, body2.position);
 		return (((-author$project$Sup$constG) * body1.mass) * body2.mass) / r;
 	});
-var author$project$Sup$Running = {$: 'Running'};
-var author$project$Sup$toggleRunState = function (runState) {
-	if (runState.$ === 'Paused') {
-		return author$project$Sup$Running;
-	} else {
-		return author$project$Sup$Paused;
-	}
-};
 var elm$core$List$takeReverse = F3(
 	function (n, list, kept) {
 		takeReverse:
@@ -6410,7 +6439,7 @@ var author$project$Sup$update = F2(
 				case 'KeyPress':
 					var s = msg.a;
 					if (s === 'Enter') {
-						var $temp$msg = author$project$Sup$ToggleRunState,
+						var $temp$msg = author$project$Sup$Act(author$project$Sup$StartPause),
 							$temp$model = model;
 						msg = $temp$msg;
 						model = $temp$model;
@@ -6418,23 +6447,9 @@ var author$project$Sup$update = F2(
 					} else {
 						return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 					}
-				case 'ToggleRunState':
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								runState: author$project$Sup$toggleRunState(runState)
-							}),
-						elm$core$Platform$Cmd$none);
-				case 'Perturb':
-					var pert = msg.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								moon: A2(author$project$Sup$annoy, pert, moon)
-							}),
-						elm$core$Platform$Cmd$none);
+				case 'Act':
+					var action = msg.a;
+					return A2(author$project$Sup$handleAction, action, model);
 				default:
 					var i = msg.a;
 					var i_ = -i;
@@ -7051,9 +7066,7 @@ var author$project$Plotting$draw = F3(
 	});
 var author$project$Sup$Brake = {$: 'Brake'};
 var author$project$Sup$Faster = {$: 'Faster'};
-var author$project$Sup$Perturb = function (a) {
-	return {$: 'Perturb', a: a};
-};
+var author$project$Sup$Reset = {$: 'Reset'};
 var elm$svg$Svg$Attributes$opacity = _VirtualDom_attribute('opacity');
 var ianmackenzie$elm_geometry$Geometry$Types$Circle2d = function (a) {
 	return {$: 'Circle2d', a: a};
@@ -7337,123 +7350,9 @@ var author$project$Sup$drawing = function (_n0) {
 			]),
 		everything);
 };
-var author$project$Sup$tdStyleLeft = _List_Nil;
-var author$project$Sup$tdStyleRight = _List_fromArray(
-	[
-		A2(elm$html$Html$Attributes$style, 'width', '160px')
-	]);
-var elm$html$Html$table = _VirtualDom_node('table');
-var elm$html$Html$td = _VirtualDom_node('td');
-var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
-var elm$html$Html$tr = _VirtualDom_node('tr');
-var author$project$Sup$physicsPane = function (_n0) {
-	var earth = _n0.earth;
-	var moon = _n0.moon;
-	var frameTick = _n0.frameTick;
-	var projection = _n0.projection;
-	var potential = A2(author$project$Sup$potentialEnergy, moon, earth);
-	var kinetic = A2(author$project$Sup$kineticEnergy, earth, moon);
-	return A2(
-		elm$html$Html$table,
-		_List_fromArray(
-			[
-				A2(elm$html$Html$Attributes$style, 'padding', '0.5rem'),
-				A2(elm$html$Html$Attributes$style, 'font-family', 'Courier New'),
-				A2(elm$html$Html$Attributes$style, 'font-size', '0.6em'),
-				A2(elm$html$Html$Attributes$style, 'border', '1px solid black'),
-				A2(elm$html$Html$Attributes$style, 'table-layout', 'fixed'),
-				A2(elm$html$Html$Attributes$style, 'margin', '5px')
-			]),
-		_List_fromArray(
-			[
-				A2(
-				elm$html$Html$tr,
-				_List_Nil,
-				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$td,
-						author$project$Sup$tdStyleLeft,
-						_List_fromArray(
-							[
-								elm$html$Html$text('scale')
-							])),
-						A2(
-						elm$html$Html$td,
-						author$project$Sup$tdStyleRight,
-						_List_fromArray(
-							[
-								elm$html$Html$text(
-								A2(myrho$elm_round$Round$round, 10, projection.scale))
-							]))
-					])),
-				A2(
-				elm$html$Html$tr,
-				_List_Nil,
-				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$td,
-						author$project$Sup$tdStyleLeft,
-						_List_fromArray(
-							[
-								elm$html$Html$text('kinetic energy')
-							])),
-						A2(
-						elm$html$Html$td,
-						author$project$Sup$tdStyleRight,
-						_List_fromArray(
-							[
-								elm$html$Html$text(
-								elm$core$String$fromFloat(kinetic))
-							]))
-					])),
-				A2(
-				elm$html$Html$tr,
-				_List_Nil,
-				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$td,
-						author$project$Sup$tdStyleLeft,
-						_List_fromArray(
-							[
-								elm$html$Html$text('potential energy')
-							])),
-						A2(
-						elm$html$Html$td,
-						author$project$Sup$tdStyleRight,
-						_List_fromArray(
-							[
-								elm$html$Html$text(
-								elm$core$String$fromFloat(potential))
-							]))
-					])),
-				A2(
-				elm$html$Html$tr,
-				_List_Nil,
-				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$td,
-						author$project$Sup$tdStyleLeft,
-						_List_fromArray(
-							[
-								elm$html$Html$text('total energy')
-							])),
-						A2(
-						elm$html$Html$td,
-						author$project$Sup$tdStyleRight,
-						_List_fromArray(
-							[
-								elm$html$Html$text(
-								elm$core$String$fromFloat(kinetic + potential))
-							]))
-					]))
-			]));
-};
 var elm$html$Html$button = _VirtualDom_node('button');
 var elm$html$Html$div = _VirtualDom_node('div');
+var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
 var elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -7472,55 +7371,17 @@ var elm$html$Html$Events$onClick = function (msg) {
 		elm$json$Json$Decode$succeed(msg));
 };
 var author$project$Sup$view = function (model) {
-	return A2(
-		elm$html$Html$div,
-		_List_fromArray(
-			[
-				A2(elm$html$Html$Attributes$style, 'display', 'flex'),
-				A2(elm$html$Html$Attributes$style, 'flex-direction', 'column'),
-				A2(elm$html$Html$Attributes$style, 'align-items', 'center')
-			]),
-		_List_fromArray(
-			[
-				author$project$Sup$drawing(model),
-				A2(
+	var plots = A2(
+		elm$core$List$map,
+		function (e) {
+			return A2(
 				elm$html$Html$div,
 				_List_Nil,
 				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$button,
-						_List_fromArray(
-							[
-								elm$html$Html$Events$onClick(author$project$Sup$ToggleRunState)
-							]),
-						_List_fromArray(
-							[
-								elm$html$Html$text('play/pause')
-							])),
-						A2(
-						elm$html$Html$button,
-						_List_fromArray(
-							[
-								elm$html$Html$Events$onClick(
-								author$project$Sup$Perturb(author$project$Sup$Brake))
-							]),
-						_List_fromArray(
-							[
-								elm$html$Html$text('brake')
-							])),
-						A2(
-						elm$html$Html$button,
-						_List_fromArray(
-							[
-								elm$html$Html$Events$onClick(
-								author$project$Sup$Perturb(author$project$Sup$Faster))
-							]),
-						_List_fromArray(
-							[
-								elm$html$Html$text('faster')
-							]))
-					])),
+					[e]));
+		},
+		_List_fromArray(
+			[
 				A3(
 				author$project$Plotting$draw,
 				_Utils_Tuple2(750, 100),
@@ -7540,9 +7401,76 @@ var author$project$Sup$view = function (model) {
 				author$project$Plotting$draw,
 				_Utils_Tuple2(750, 100),
 				'green',
-				model.totalEnergyPlot),
-				author$project$Sup$physicsPane(model)
+				model.totalEnergyPlot)
 			]));
+	return A2(
+		elm$html$Html$div,
+		_List_fromArray(
+			[
+				A2(elm$html$Html$Attributes$style, 'display', 'flex'),
+				A2(elm$html$Html$Attributes$style, 'flex-direction', 'column'),
+				A2(elm$html$Html$Attributes$style, 'align-items', 'center')
+			]),
+		_Utils_ap(
+			_List_fromArray(
+				[
+					author$project$Sup$drawing(model),
+					A2(
+					elm$html$Html$div,
+					_List_fromArray(
+						[
+							A2(elm$html$Html$Attributes$style, 'margin', '0.4em')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$button,
+							_List_fromArray(
+								[
+									elm$html$Html$Events$onClick(
+									author$project$Sup$Act(author$project$Sup$StartPause))
+								]),
+							_List_fromArray(
+								[
+									elm$html$Html$text('play/pause')
+								])),
+							A2(
+							elm$html$Html$button,
+							_List_fromArray(
+								[
+									elm$html$Html$Events$onClick(
+									author$project$Sup$Act(author$project$Sup$Reset))
+								]),
+							_List_fromArray(
+								[
+									elm$html$Html$text('reset')
+								])),
+							elm$html$Html$text(' - '),
+							A2(
+							elm$html$Html$button,
+							_List_fromArray(
+								[
+									elm$html$Html$Events$onClick(
+									author$project$Sup$Act(author$project$Sup$Brake))
+								]),
+							_List_fromArray(
+								[
+									elm$html$Html$text('brake')
+								])),
+							A2(
+							elm$html$Html$button,
+							_List_fromArray(
+								[
+									elm$html$Html$Events$onClick(
+									author$project$Sup$Act(author$project$Sup$Faster))
+								]),
+							_List_fromArray(
+								[
+									elm$html$Html$text('faster')
+								]))
+						]))
+				]),
+			plots));
 };
 var elm$browser$Browser$element = _Browser_element;
 var author$project$Sup$main = elm$browser$Browser$element(
