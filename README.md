@@ -6,11 +6,13 @@ The beginnings of a little solar system simulation, written in elm.
 
 ## Todo
 
-- reset button
+- reset button @done
 - accelerate orthogonally to current vector
 - options to set simulation step size, simulation speed, trail size
 - bring back zoom
 - go back to 2d
+- field to inject specific delta v
+- draw vectors
 
 ## Reference material
 
