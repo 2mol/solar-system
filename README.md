@@ -10,9 +10,10 @@ The beginnings of a little solar system simulation, written in elm.
 - accelerate orthogonally to current vector
 - options to set simulation step size, simulation speed, trail size
 - bring back zoom
-- go back to 2d
+- go back to 2d @done
 - field to inject specific delta v
 - draw vectors
+- Different plot type: SlidingWindow & Accumulate
 
 ## Reference material
 

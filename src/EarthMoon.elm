@@ -11,13 +11,11 @@ import Json.Decode as Decode
 import Plane3d
 import Plotting as P
 import Point2d exposing (Point2d)
-import Point3d exposing (Point3d)
 import Round
-import SketchPlane3d exposing (SketchPlane3d)
 import String
 import Svg exposing (Svg)
 import Svg.Attributes as SvgA
-import Vector3d exposing (Vector3d)
+import Vector2d exposing (Vector2d)
 
 
 main : Program () Model Msg
@@ -36,7 +34,7 @@ type alias Model =
     , frameTick : Float
     , earth : Body
     , moon : Body
-    , trail : List Point3d
+    , trail : List Point2d
     , projection : Projection
     , fpsPlot : P.Plot Float
     , kineticPlot : P.Plot Float
@@ -47,8 +45,8 @@ type alias Model =
 
 type alias Body =
     { mass : Mass
-    , position : Point3d
-    , velocity : Vector3d
+    , position : Point2d
+    , velocity : Vector2d
     , radius : Float
     , atmosphere : Float
     }
@@ -59,8 +57,7 @@ type alias Mass =
 
 
 type alias Projection =
-    { plane : SketchPlane3d
-    , center : Point2d
+    { center : Point2d
     , scale : Float
     }
 
@@ -99,8 +96,7 @@ initModel =
     , moon = initMoon
     , trail = []
     , projection =
-        { plane = SketchPlane3d.xy
-        , center = Point2d.fromCoordinates ( 0, 0 )
+        { center = Point2d.fromCoordinates ( 0, 0 )
         , scale = 7.0e-7
         }
     , fpsPlot = P.new "fps" |> P.setRange (P.Fixed ( 0, 120 ))
@@ -113,8 +109,8 @@ initModel =
 initEarth : Body
 initEarth =
     { mass = 5.9722e24
-    , position = Point3d.fromCoordinates ( 0, 0, 0 )
-    , velocity = Vector3d.fromComponents ( 0, 0, 0 )
+    , position = Point2d.fromCoordinates ( 0, 0 )
+    , velocity = Vector2d.fromComponents ( 0, 0 )
     , radius = 6371000
     , atmosphere = 0.05
     }
@@ -123,8 +119,8 @@ initEarth =
 initMoon : Body
 initMoon =
     { mass = 7.34767309e22
-    , position = Point3d.fromCoordinates ( 384400000, 0, 0 )
-    , velocity = Vector3d.fromComponents ( 0, 1000, 0 )
+    , position = Point2d.fromCoordinates ( 384400000, 0 )
+    , velocity = Vector2d.fromComponents ( 0, 1000 )
     , radius = 1737000
     , atmosphere = 0
     }
@@ -148,7 +144,7 @@ update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, po
                     applyN nSteps (\m -> euler timeStep ( earth, m )) moon
 
                 trail_ =
-                    List.take 500 <| moon.position :: trail
+                    List.take 250 <| moon.position :: trail
 
                 fps =
                     1000 / dt
@@ -272,7 +268,7 @@ handleAction act ({ runState, earth, moon } as model) =
 
 
 accelerate scale thing =
-    { thing | velocity = Vector3d.scaleBy scale thing.velocity }
+    { thing | velocity = Vector2d.scaleBy scale thing.velocity }
 
 
 
@@ -371,27 +367,25 @@ applyN n fun input =
 euler : Float -> ( Body, Body ) -> Body
 euler dt ( fixedBody, movingBody ) =
     let
-        ( x, y, z ) =
-            Point3d.coordinates movingBody.position
+        ( x, y ) =
+            Point2d.coordinates movingBody.position
 
-        ( u, v, w ) =
-            Vector3d.components movingBody.velocity
+        ( u, v ) =
+            Vector2d.components movingBody.velocity
 
         quot =
-            dt * constG * fixedBody.mass / (x ^ 2 + y ^ 2 + z ^ 2) ^ (3 / 2)
+            dt * constG * fixedBody.mass / (x ^ 2 + y ^ 2) ^ (3 / 2)
 
         newPos =
-            Point3d.fromCoordinates
+            Point2d.fromCoordinates
                 ( x + u * dt
                 , y + v * dt
-                , z + w * dt
                 )
 
         newVel =
-            Vector3d.fromComponents
+            Vector2d.fromComponents
                 ( u - x * quot
                 , v - y * quot
-                , w - z * quot
                 )
     in
     { movingBody
@@ -406,14 +400,14 @@ kineticEnergy fixBody movBody =
         mu =
             1 / (1 / fixBody.mass + 1 / movBody.mass)
     in
-    0.5 * mu * Vector3d.squaredLength movBody.velocity
+    0.5 * mu * Vector2d.squaredLength movBody.velocity
 
 
 potentialEnergy : Body -> Body -> Float
 potentialEnergy body1 body2 =
     let
         r =
-            Point3d.distanceFrom body1.position body2.position
+            Point2d.distanceFrom body1.position body2.position
     in
     -constG * body1.mass * body2.mass / r
 
@@ -421,9 +415,6 @@ potentialEnergy body1 body2 =
 drawing : Model -> Html Msg
 drawing { earth, moon, trail, projection } =
     let
-        sketchPlane =
-            SketchPlane3d.xy
-
         everything =
             [ Svg.rect [ SvgA.x "-500", SvgA.y "-300", SvgA.width "100%", SvgA.height "100%", SvgA.fill "#f7f7f7" ] [] ]
                 -- ++ List.map (drawTrail projection) trail
@@ -441,14 +432,13 @@ drawing { earth, moon, trail, projection } =
 
 
 drawBody : Projection -> Body -> Svg msg
-drawBody { plane, center, scale } { mass, position, radius, atmosphere } =
+drawBody { center, scale } { mass, position, radius, atmosphere } =
     let
         scaledRadius =
             radius * scale
 
         scaledPosition =
             position
-                |> Point3d.projectInto plane
                 |> Point2d.scaleAbout center scale
 
         atmocircle =
@@ -470,12 +460,11 @@ drawBody { plane, center, scale } { mass, position, radius, atmosphere } =
         )
 
 
-drawTrail : Projection -> Point3d -> Svg msg
-drawTrail { plane, center, scale } position =
+drawTrail : Projection -> Point2d -> Svg msg
+drawTrail { center, scale } position =
     let
         scaledPosition =
             position
-                |> Point3d.projectInto plane
                 |> Point2d.scaleAbout center scale
     in
     Svg.g []
@@ -484,12 +473,11 @@ drawTrail { plane, center, scale } position =
         ]
 
 
-drawTrailFast : Projection -> List Point3d -> Svg msg
-drawTrailFast { plane, center, scale } positions =
+drawTrailFast : Projection -> List Point2d -> Svg msg
+drawTrailFast { center, scale } positions =
     let
         scaledPositions =
             positions
-                |> List.map (Point3d.projectInto plane)
                 |> List.map (Point2d.scaleAbout center scale)
                 |> List.map Point2d.coordinates
 
