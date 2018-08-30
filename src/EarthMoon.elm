@@ -211,7 +211,7 @@ view model =
         , style "align-items" "center"
         ]
         ([ drawing model
-        , Html.div [style "margin" "0.2em"]
+        , Html.div [style "margin" "0.4em"]
             [ Html.button [ onClick ToggleRunState ] [ Html.text "play/pause" ]
             , Html.button [ onClick <| Perturb Faster ] [ Html.text "reset" ]
             , Html.text " - "
