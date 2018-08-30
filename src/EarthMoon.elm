@@ -196,24 +196,35 @@ update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, po
 
 view : Model -> Html Msg
 view model =
+    let
+        plots =
+            [ P.draw ( 750, 100 ) "pink" model.fpsPlot
+            , P.draw ( 750, 100 ) "blue" model.kineticPlot
+            , P.draw ( 750, 100 ) "yellow" model.potentialPlot
+            , P.draw ( 750, 100 ) "green" model.totalEnergyPlot
+            ]
+                |> List.map (\e -> Html.div [] [e])
+    in
     Html.div
         [ style "display" "flex"
         , style "flex-direction" "column"
         , style "align-items" "center"
         ]
-        [ drawing model
-        , Html.div []
+        ([ drawing model
+        , Html.div [style "margin" "0.2em"]
             [ Html.button [ onClick ToggleRunState ] [ Html.text "play/pause" ]
+            , Html.button [ onClick <| Perturb Faster ] [ Html.text "reset" ]
+            , Html.text " - "
             , Html.button [ onClick <| Perturb Brake ] [ Html.text "brake" ]
             , Html.button [ onClick <| Perturb Faster ] [ Html.text "faster" ]
             ]
 
-        , P.draw ( 750, 100 ) "pink" model.fpsPlot
-        , P.draw ( 750, 100 ) "blue" model.kineticPlot
-        , P.draw ( 750, 100 ) "yellow" model.potentialPlot
-        , P.draw ( 750, 100 ) "green" model.totalEnergyPlot
-        , physicsPane model
-        ]
+        -- , P.draw ( 750, 100 ) "pink" model.fpsPlot
+        -- , P.draw ( 750, 100 ) "blue" model.kineticPlot
+        -- , P.draw ( 750, 100 ) "yellow" model.potentialPlot
+        -- , P.draw ( 750, 100 ) "green" model.totalEnergyPlot
+        -- , physicsPane model
+        ] ++ plots)
 
 
 keyDecoder : Decode.Decoder Msg
