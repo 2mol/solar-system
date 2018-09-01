@@ -1,4 +1,4 @@
-module Sup exposing (main)
+module EarthMoon exposing (main)
 
 import Browser
 import Browser.Events as Browser
@@ -20,7 +20,7 @@ import Vector2d exposing (Vector2d)
 
 main : Program () Model Msg
 main =
-    Browser.element
+    Browser.document
         { init = \_ -> init
         , view = view
         , update = update
@@ -193,39 +193,38 @@ update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, po
             ( { model | projection = projection_ }, Cmd.none )
 
 
-view : Model -> Html Msg
+view : Model -> Browser.Document Msg
 view model =
     let
         plots =
-            [ P.draw ( 750, 100 ) "pink" model.fpsPlot
-            , P.draw ( 750, 100 ) "blue" model.kineticPlot
-            , P.draw ( 750, 100 ) "yellow" model.potentialPlot
-            , P.draw ( 750, 100 ) "green" model.totalEnergyPlot
+            [ P.draw ( 750, 80 ) "pink" model.fpsPlot
+            , P.draw ( 750, 80 ) "blue" model.kineticPlot
+            , P.draw ( 750, 80 ) "yellow" model.potentialPlot
+            , P.draw ( 750, 80 ) "green" model.totalEnergyPlot
             ]
                 |> List.map (\e -> Html.div [] [ e ])
-    in
-    Html.div
-        [ style "display" "flex"
-        , style "flex-direction" "column"
-        , style "align-items" "center"
-        ]
-        ([ drawing model
-         , Html.div [ style "margin" "0.4em" ]
+
+        buttons =
             [ Html.button [ onClick <| Act StartPause ] [ Html.text "play/pause" ]
             , Html.button [ onClick <| Act Reset ] [ Html.text "reset" ]
             , Html.text " - "
             , Html.button [ onClick <| Act Brake ] [ Html.text "brake" ]
             , Html.button [ onClick <| Act Faster ] [ Html.text "faster" ]
             ]
-
-         -- , P.draw ( 750, 100 ) "pink" model.fpsPlot
-         -- , P.draw ( 750, 100 ) "blue" model.kineticPlot
-         -- , P.draw ( 750, 100 ) "yellow" model.potentialPlot
-         -- , P.draw ( 750, 100 ) "green" model.totalEnergyPlot
-         -- , physicsPane model
-         ]
-            ++ plots
-        )
+    in
+    { title = "Solar"
+    , body =
+        [ Html.div
+            [ style "display" "flex"
+            , style "flex-direction" "column"
+            , style "align-items" "center"
+            ]
+            [ drawing model
+            , Html.div [ style "margin" "0.4em" ] buttons
+            , Html.div [] plots
+            ]
+        ]
+    }
 
 
 keyDecoder : Decode.Decoder Msg

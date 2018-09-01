@@ -2,7 +2,7 @@
 Todo:
   ☐ options to set simulation step size, simulation speed, trail size
   ☐ bring back zoom
-  ☐ Different plot type: SlidingWindow & Accumulate
+  ☐ Different plot types: SlidingWindow & Accumulate
   ✔ use anchor point for plot label @done(18-08-30 16:28)
 
 Maybe nice:
