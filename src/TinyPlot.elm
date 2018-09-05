@@ -1,4 +1,13 @@
-module Plotting exposing (Plot, Range(..), addDataPoint, draw, new, setMaxPoints, setRange)
+module TinyPlot exposing
+    ( Plot
+    , Range(..)
+    , draw
+    , new
+    , pushData
+    , replaceData
+    , setMaxPoints
+    , setRange
+    )
 
 import Array as A exposing (Array)
 import Html exposing (Html)
@@ -33,8 +42,8 @@ setRange r (Plot plot) =
     Plot { plot | range = r }
 
 
-addDataPoint : Plot a -> a -> Plot a
-addDataPoint (Plot plot) x =
+pushData : Plot a -> a -> Plot a
+pushData (Plot plot) x =
     let
         newDataPoints =
             if A.length plot.dataPoints < plot.nPoints then

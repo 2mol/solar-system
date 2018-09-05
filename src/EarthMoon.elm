@@ -9,7 +9,7 @@ import Html.Attributes exposing (style)
 import Html.Events exposing (on, onClick)
 import Json.Decode as Decode
 import Plane3d
-import Plotting as P
+import TinyPlot as P
 import Point2d exposing (Point2d)
 import Round
 import String
@@ -159,10 +159,10 @@ update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, po
                 | moon = moon_
                 , trail = trail_
                 , frameTick = dt
-                , fpsPlot = P.addDataPoint fpsPlot fps
-                , kineticPlot = P.addDataPoint kineticPlot kinetic
-                , potentialPlot = P.addDataPoint potentialPlot potential
-                , totalEnergyPlot = P.addDataPoint totalEnergyPlot (kinetic + potential)
+                , fpsPlot = P.pushData fpsPlot fps
+                , kineticPlot = P.pushData kineticPlot kinetic
+                , potentialPlot = P.pushData potentialPlot potential
+                , totalEnergyPlot = P.pushData totalEnergyPlot (kinetic + potential)
               }
             , Cmd.none
             )
