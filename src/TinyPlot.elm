@@ -1,19 +1,20 @@
 module TinyPlot exposing
     ( Plot
-    , Range(..)
+    , XRange(..)
+    , YRange(..)
     , draw
     , new
     , pushData
     , replaceData
     , setMaxPoints
-    , setRange
+    , setXRange
+    , setYRange
     )
 
 import Array as A exposing (Array)
 import Html exposing (Html)
 import Html.Attributes as HtmlA exposing (style)
 import Maybe
-import Round
 import Svg exposing (Svg)
 import Svg.Attributes as S
 
@@ -23,13 +24,14 @@ type Plot a
         { name : String
         , dataPoints : Array a
         , nPoints : Int
-        , range : Range
+        , yRange : YRange
+        , xRange : XRange
         }
 
 
 new : String -> Plot a
 new name =
-    Plot { name = name, dataPoints = A.empty, nPoints = 500, range = Dynamic }
+    Plot { name = name, dataPoints = A.empty, nPoints = 500, yRange = Dynamic, xRange = Sliding }
 
 
 setMaxPoints : Int -> Plot a -> Plot a
@@ -37,20 +39,30 @@ setMaxPoints n (Plot plot) =
     Plot { plot | nPoints = n }
 
 
-setRange : Range -> Plot a -> Plot a
-setRange r (Plot plot) =
-    Plot { plot | range = r }
+setYRange : YRange -> Plot a -> Plot a
+setYRange r (Plot plot) =
+    Plot { plot | yRange = r }
+
+
+setXRange : XRange -> Plot a -> Plot a
+setXRange r (Plot plot) =
+    Plot { plot | xRange = r }
 
 
 pushData : Plot a -> a -> Plot a
 pushData (Plot plot) x =
     let
         newDataPoints =
-            if A.length plot.dataPoints < plot.nPoints then
-                A.push x plot.dataPoints
+            case plot.xRange of
+                Sliding ->
+                    if A.length plot.dataPoints < plot.nPoints then
+                        A.push x plot.dataPoints
 
-            else
-                A.push x plot.dataPoints |> A.slice 1 (plot.nPoints + 1)
+                    else
+                        A.push x plot.dataPoints |> A.slice 1 (plot.nPoints + 1)
+
+                Accumulative ->
+                    A.push x plot.dataPoints
     in
     Plot { plot | dataPoints = newDataPoints }
 
@@ -60,19 +72,29 @@ replaceData (Plot plot) xs =
     Plot { plot | dataPoints = A.slice 0 plot.nPoints <| A.fromList xs }
 
 
-type Range
+type YRange
     = Fixed ( Float, Float )
     | Dynamic
+
+
+type XRange
+    = Sliding
+    | Accumulative
 
 
 draw : ( Int, Int ) -> String -> Plot Float -> Html msg
 draw ( width, height ) color (Plot p) =
     let
         dx =
-            toFloat width / toFloat (p.nPoints - 1)
+            case p.xRange of
+                Sliding ->
+                    toFloat width / toFloat (p.nPoints - 1)
+
+                Accumulative ->
+                    toFloat width / toFloat (A.length p.dataPoints - 1)
 
         ( yMin, yMax ) =
-            case p.range of
+            case p.yRange of
                 Dynamic ->
                     ( Maybe.withDefault 0 <| List.minimum <| A.toList p.dataPoints
                     , Maybe.withDefault 0 <| List.maximum <| A.toList p.dataPoints
@@ -129,9 +151,8 @@ draw ( width, height ) color (Plot p) =
                 - 3
                 |> String.fromFloat
 
-        avgString =
-            Round.round 1 avg
-
+        -- avgString =
+        --Round.round 1 avg
         rightAlignPos =
             String.fromInt (width - 2)
 
@@ -144,20 +165,20 @@ draw ( width, height ) color (Plot p) =
         bottomPos =
             String.fromInt <| height - 4
 
-        avgLine =
-            case p.range of
-                Fixed _ ->
-                    Svg.g []
-                        [ Svg.text_
-                            [ S.x rightAlignPos, S.textAnchor "end", S.y hAvgLabel ]
-                            [ Svg.text avgString ]
-                        , Svg.line
-                            [ S.x1 "0", S.y1 hstrAvg, S.x2 wstr, S.y2 hstrAvg, S.stroke "black", S.opacity "0.35" ]
-                            []
-                        ]
-
-                _ ->
-                    Svg.g [] []
+        -- avgLine =
+        --     -- TODO: make this a setting, don't link to y range
+        --     case p.yRange of
+        --         Fixed _ ->
+        --             Svg.g []
+        --                 [ Svg.text_
+        --                     [ S.x rightAlignPos, S.textAnchor "end", S.y hAvgLabel ]
+        --                     [ Svg.text avgString ]
+        --                 , Svg.line
+        --                     [ S.x1 "0", S.y1 hstrAvg, S.x2 wstr, S.y2 hstrAvg, S.stroke "black", S.opacity "0.35" ]
+        --                     []
+        --                 ]
+        --         _ ->
+        --             Svg.g [] []
     in
     Svg.svg
         [ S.width wstr
@@ -169,7 +190,8 @@ draw ( width, height ) color (Plot p) =
         ]
         [ Svg.line [ S.x1 "0", S.y1 hstrHalf, S.x2 wstr, S.y2 hstrHalf, S.stroke "black", S.opacity "0.25" ] []
         , Svg.polyline [ S.fill "none", S.stroke color, S.points coordString ] []
-        , avgLine
+
+        -- , avgLine
         , Svg.text_ [ S.x "0.3em", S.y "1em" ] [ Svg.text p.name ]
         , Svg.text_ [ S.x rightAlignPos, S.textAnchor "end", S.y "1em" ] [ Svg.text yMaxString ]
         , Svg.text_ [ S.x rightAlignPos, S.textAnchor "end", S.y bottomPos ] [ Svg.text yMinString ]

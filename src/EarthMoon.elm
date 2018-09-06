@@ -9,12 +9,12 @@ import Html.Attributes exposing (style)
 import Html.Events exposing (on, onClick)
 import Json.Decode as Decode
 import Plane3d
-import TinyPlot as P
 import Point2d exposing (Point2d)
 import Round
 import String
 import Svg exposing (Svg)
 import Svg.Attributes as SvgA
+import TinyPlot as P
 import Vector2d exposing (Vector2d)
 
 
@@ -31,7 +31,6 @@ main =
 type alias Model =
     { runState : RunState
     , mouseInDrawing : Bool
-    , frameTick : Float
     , earth : Body
     , moon : Body
     , trail : List Point2d
@@ -91,7 +90,6 @@ initModel : Model
 initModel =
     { mouseInDrawing = False
     , runState = Paused
-    , frameTick = 0
     , earth = initEarth
     , moon = initMoon
     , trail = []
@@ -99,10 +97,10 @@ initModel =
         { center = Point2d.fromCoordinates ( 0, 0 )
         , scale = 7.0e-7
         }
-    , fpsPlot = P.new "fps" |> P.setRange (P.Fixed ( 0, 120 ))
+    , fpsPlot = P.new "fps" |> P.setYRange (P.Fixed ( 0, 120 ))
     , kineticPlot = P.new "kinetic energy"
     , potentialPlot = P.new "potential energy"
-    , totalEnergyPlot = P.new "total energy"
+    , totalEnergyPlot = P.new "total energy" |> P.setMaxPoints 5000
     }
 
 
@@ -143,9 +141,6 @@ update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, po
                 moon_ =
                     applyN nSteps (\m -> euler timeStep ( earth, m )) moon
 
-                trail_ =
-                    List.take 250 <| moon.position :: trail
-
                 fps =
                     1000 / dt
 
@@ -157,8 +152,7 @@ update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, po
             in
             ( { model
                 | moon = moon_
-                , trail = trail_
-                , frameTick = dt
+                , trail = List.take 250 <| moon.position :: trail
                 , fpsPlot = P.pushData fpsPlot fps
                 , kineticPlot = P.pushData kineticPlot kinetic
                 , potentialPlot = P.pushData potentialPlot potential
@@ -275,7 +269,7 @@ accelerate scale thing =
 
 
 physicsPane : Model -> Html Msg
-physicsPane { earth, moon, frameTick, projection } =
+physicsPane { earth, moon, projection } =
     let
         kinetic =
             kineticEnergy earth moon
