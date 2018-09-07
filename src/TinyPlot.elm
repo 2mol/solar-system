@@ -1,5 +1,5 @@
 module TinyPlot exposing
-    ( Plot
+    ( TinyPlot
     , XRange(..)
     , YRange(..)
     , draw
@@ -19,38 +19,37 @@ import Svg exposing (Svg)
 import Svg.Attributes as S
 
 
-type Plot a
-    = Plot
-        { name : String
-        , dataPoints : Array a
-        , nPoints : Int
-        , yRange : YRange
-        , xRange : XRange
-        }
+type alias TinyPlot =
+    { name : String
+    , dataPoints : Array Float
+    , nPoints : Int
+    , yRange : YRange
+    , xRange : XRange
+    }
 
 
-new : String -> Plot a
+new : String -> TinyPlot
 new name =
-    Plot { name = name, dataPoints = A.empty, nPoints = 500, yRange = Dynamic, xRange = Sliding }
+    { name = name, dataPoints = A.empty, nPoints = 500, yRange = Dynamic, xRange = Sliding }
 
 
-setMaxPoints : Int -> Plot a -> Plot a
-setMaxPoints n (Plot plot) =
-    Plot { plot | nPoints = n }
+setMaxPoints : Int -> TinyPlot -> TinyPlot
+setMaxPoints n plot =
+    { plot | nPoints = n }
 
 
-setYRange : YRange -> Plot a -> Plot a
-setYRange r (Plot plot) =
-    Plot { plot | yRange = r }
+setYRange : YRange -> TinyPlot -> TinyPlot
+setYRange r plot =
+    { plot | yRange = r }
 
 
-setXRange : XRange -> Plot a -> Plot a
-setXRange r (Plot plot) =
-    Plot { plot | xRange = r }
+setXRange : XRange -> TinyPlot -> TinyPlot
+setXRange r plot =
+    { plot | xRange = r }
 
 
-pushData : Plot a -> a -> Plot a
-pushData (Plot plot) x =
+pushData : TinyPlot -> Float -> TinyPlot
+pushData plot x =
     let
         newDataPoints =
             case plot.xRange of
@@ -64,12 +63,12 @@ pushData (Plot plot) x =
                 Accumulative ->
                     A.push x plot.dataPoints
     in
-    Plot { plot | dataPoints = newDataPoints }
+    { plot | dataPoints = newDataPoints }
 
 
-replaceData : Plot a -> List a -> Plot a
-replaceData (Plot plot) xs =
-    Plot { plot | dataPoints = A.slice 0 plot.nPoints <| A.fromList xs }
+replaceData : TinyPlot -> List Float -> TinyPlot
+replaceData plot xs =
+    { plot | dataPoints = A.slice 0 plot.nPoints <| A.fromList xs }
 
 
 type YRange
@@ -82,8 +81,8 @@ type XRange
     | Accumulative
 
 
-draw : ( Int, Int ) -> String -> Plot Float -> Html msg
-draw ( width, height ) color (Plot p) =
+draw : ( Int, Int ) -> String -> TinyPlot -> Html msg
+draw ( width, height ) color p =
     let
         dx =
             case p.xRange of

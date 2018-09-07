@@ -14,7 +14,7 @@ import Round
 import String
 import Svg exposing (Svg)
 import Svg.Attributes as SvgA
-import TinyPlot as P
+import TinyPlot as P exposing (TinyPlot)
 import Vector2d exposing (Vector2d)
 
 
@@ -30,15 +30,14 @@ main =
 
 type alias Model =
     { runState : RunState
-    , mouseInDrawing : Bool
     , earth : Body
     , moon : Body
     , trail : List Point2d
     , projection : Projection
-    , fpsPlot : P.Plot Float
-    , kineticPlot : P.Plot Float
-    , potentialPlot : P.Plot Float
-    , totalEnergyPlot : P.Plot Float
+    , fpsPlot : TinyPlot
+    , kineticPlot : TinyPlot
+    , potentialPlot : TinyPlot
+    , totalEnergyPlot : TinyPlot
     }
 
 
@@ -67,8 +66,7 @@ type RunState
 
 
 type Msg
-    = Nope
-    | Tick Float
+    = Tick Float
     | Act Action
     | Zoom Int
     | KeyPress String
@@ -88,8 +86,7 @@ init =
 
 initModel : Model
 initModel =
-    { mouseInDrawing = False
-    , runState = Paused
+    { runState = Paused
     , earth = initEarth
     , moon = initMoon
     , trail = []
@@ -127,8 +124,6 @@ initMoon =
 update : Msg -> Model -> ( Model, Cmd msg )
 update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, potentialPlot, totalEnergyPlot } as model) =
     case msg of
-        Nope ->
-            ( model, Cmd.none )
 
         Tick dt ->
             let
