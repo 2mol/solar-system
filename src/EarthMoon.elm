@@ -97,7 +97,7 @@ initModel =
     , fpsPlot = P.new "fps" |> P.setYRange (P.Fixed ( 0, 120 ))
     , kineticPlot = P.new "kinetic energy"
     , potentialPlot = P.new "potential energy"
-    , totalEnergyPlot = P.new "total energy" |> P.setMaxPoints 1000
+    , totalEnergyPlot = P.new "total energy" |> P.setXRange P.Accumulative-- |> P.setMaxPoints 1000
     }
 
 
@@ -187,8 +187,8 @@ view model =
         plots =
             [ P.draw ( 750, 80 ) "#0074D9" model.kineticPlot
             , P.draw ( 750, 80 ) "#FFDC00" model.potentialPlot
-            , P.draw ( 750, 80 ) "#85144b" model.totalEnergyPlot
-            , P.draw ( 750, 80 ) "pink" model.fpsPlot
+            , P.draw ( 750, 80 ) "#2ECC40" model.totalEnergyPlot
+            , P.draw ( 750, 80 ) "#FF4136" model.fpsPlot
             ]
                 |> List.map (\e -> Html.div [] [ e ])
 

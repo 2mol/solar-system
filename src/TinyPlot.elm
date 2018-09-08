@@ -61,7 +61,11 @@ pushData plot x =
                         A.push x plot.dataPoints |> A.slice 1 (plot.nPoints + 1)
 
                 Accumulative ->
-                    A.push x plot.dataPoints
+                    if A.length plot.dataPoints < 2 * plot.nPoints then
+                        A.push x plot.dataPoints
+
+                    else
+                        A.push x plot.dataPoints |> cull
     in
     { plot | dataPoints = newDataPoints }
 
@@ -213,3 +217,10 @@ median arr =
 average : Array Float -> Float
 average arr =
     A.foldl (+) 0 arr / (toFloat <| A.length arr)
+
+cull : Array Float -> Array Float
+cull arr =
+    arr
+        |> A.indexedMap (\i e -> if modBy 2 i == 0 then Just e else Nothing)
+        |> A.filter (\x -> x /= Nothing)
+        |> A.map (Maybe.withDefault 0)
