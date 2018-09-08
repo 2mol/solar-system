@@ -97,7 +97,7 @@ initModel =
     , fpsPlot = P.new "fps" |> P.setYRange (P.Fixed ( 0, 120 ))
     , kineticPlot = P.new "kinetic energy"
     , potentialPlot = P.new "potential energy"
-    , totalEnergyPlot = P.new "total energy" |> P.setMaxPoints 5000
+    , totalEnergyPlot = P.new "total energy" |> P.setMaxPoints 1000
     }
 
 
@@ -124,17 +124,16 @@ initMoon =
 update : Msg -> Model -> ( Model, Cmd msg )
 update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, potentialPlot, totalEnergyPlot } as model) =
     case msg of
-
         Tick dt ->
             let
                 nSteps =
-                    500
+                    1500
 
                 timeStep =
                     5000 / nSteps
 
                 moon_ =
-                    applyN nSteps (\m -> euler timeStep ( earth, m )) moon
+                    applyN nSteps (euler timeStep earth) moon
 
                 fps =
                     1000 / dt
@@ -186,10 +185,10 @@ view : Model -> Browser.Document Msg
 view model =
     let
         plots =
-            [ P.draw ( 750, 80 ) "pink" model.fpsPlot
-            , P.draw ( 750, 80 ) "blue" model.kineticPlot
-            , P.draw ( 750, 80 ) "yellow" model.potentialPlot
-            , P.draw ( 750, 80 ) "green" model.totalEnergyPlot
+            [ P.draw ( 750, 80 ) "#0074D9" model.kineticPlot
+            , P.draw ( 750, 80 ) "#FFDC00" model.potentialPlot
+            , P.draw ( 750, 80 ) "#85144b" model.totalEnergyPlot
+            , P.draw ( 750, 80 ) "pink" model.fpsPlot
             ]
                 |> List.map (\e -> Html.div [] [ e ])
 
@@ -259,66 +258,6 @@ accelerate scale thing =
     { thing | velocity = Vector2d.scaleBy scale thing.velocity }
 
 
-
--- subviews
-
-
-physicsPane : Model -> Html Msg
-physicsPane { earth, moon, projection } =
-    let
-        kinetic =
-            kineticEnergy earth moon
-
-        potential =
-            potentialEnergy moon earth
-    in
-    Html.table
-        [ style "padding" "0.5rem"
-        , style "font-family" "Courier New"
-        , style "font-size" "0.6em"
-        , style "border" "1px solid black"
-        , style "table-layout" "fixed"
-        , style "margin" "5px"
-        ]
-        [ Html.tr []
-            [ Html.td tdStyleLeft [ Html.text "scale" ]
-            , Html.td tdStyleRight [ Html.text <| Round.round 10 projection.scale ]
-            ]
-        , Html.tr []
-            [ Html.td tdStyleLeft [ Html.text "kinetic energy" ]
-            , Html.td tdStyleRight
-                [ kinetic
-                    |> String.fromFloat
-                    |> Html.text
-                ]
-            ]
-        , Html.tr []
-            [ Html.td tdStyleLeft [ Html.text "potential energy" ]
-            , Html.td tdStyleRight
-                [ potential
-                    |> String.fromFloat
-                    |> Html.text
-                ]
-            ]
-        , Html.tr []
-            [ Html.td tdStyleLeft [ Html.text "total energy" ]
-            , Html.td tdStyleRight
-                [ (kinetic + potential)
-                    |> String.fromFloat
-                    |> Html.text
-                ]
-            ]
-        ]
-
-
-tdStyleLeft =
-    []
-
-
-tdStyleRight =
-    [ style "width" "160px" ]
-
-
 toggleRunState : RunState -> RunState
 toggleRunState runState =
     case runState of
@@ -352,8 +291,8 @@ applyN n fun input =
         applyN (n - 1) fun (fun input)
 
 
-euler : Float -> ( Body, Body ) -> Body
-euler dt ( fixedBody, movingBody ) =
+euler : Float -> Body -> Body -> Body
+euler dt fixedBody movingBody =
     let
         ( x, y ) =
             Point2d.coordinates movingBody.position
@@ -361,25 +300,34 @@ euler dt ( fixedBody, movingBody ) =
         ( u, v ) =
             Vector2d.components movingBody.velocity
 
-        quot =
-            dt * constG * fixedBody.mass / (x ^ 2 + y ^ 2) ^ (3 / 2)
+        r =
+            Point2d.squaredDistanceFrom
+                fixedBody.position
+                movingBody.position
 
-        newPos =
+        quot =
+            dt * constG * fixedBody.mass / r ^ (3 / 2)
+
+        newPosition =
             Point2d.fromCoordinates
                 ( x + u * dt
                 , y + v * dt
                 )
 
-        newVel =
+        newVelocity =
             Vector2d.fromComponents
                 ( u - x * quot
                 , v - y * quot
                 )
     in
     { movingBody
-        | position = newPos
-        , velocity = newVel
+        | position = newPosition
+        , velocity = newVelocity
     }
+
+
+rungeKutta4 dt pos vel =
+    0
 
 
 kineticEnergy : Body -> Body -> Float
@@ -388,7 +336,7 @@ kineticEnergy fixBody movBody =
         mu =
             1 / (1 / fixBody.mass + 1 / movBody.mass)
     in
-    0.5 * mu * Vector2d.squaredLength movBody.velocity
+    0.5 * movBody.mass * Vector2d.squaredLength movBody.velocity
 
 
 potentialEnergy : Body -> Body -> Float
