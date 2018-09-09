@@ -9,6 +9,7 @@ module TinyPlot exposing
     , setMaxPoints
     , setXRange
     , setYRange
+    , simpleRound
     )
 
 import Array as A exposing (Array)
@@ -154,8 +155,9 @@ draw ( width, height ) color p =
                 - 3
                 |> String.fromFloat
 
-        -- avgString =
-        --Round.round 1 avg
+        avgString =
+            simpleRound 1 avg
+
         rightAlignPos =
             String.fromInt (width - 2)
 
@@ -168,20 +170,21 @@ draw ( width, height ) color p =
         bottomPos =
             String.fromInt <| height - 4
 
-        -- avgLine =
-        --     -- TODO: make this a setting, don't link to y range
-        --     case p.yRange of
-        --         Fixed _ ->
-        --             Svg.g []
-        --                 [ Svg.text_
-        --                     [ S.x rightAlignPos, S.textAnchor "end", S.y hAvgLabel ]
-        --                     [ Svg.text avgString ]
-        --                 , Svg.line
-        --                     [ S.x1 "0", S.y1 hstrAvg, S.x2 wstr, S.y2 hstrAvg, S.stroke "black", S.opacity "0.35" ]
-        --                     []
-        --                 ]
-        --         _ ->
-        --             Svg.g [] []
+        avgLine =
+            -- TODO: make this a setting, don't link to y range
+            case p.yRange of
+                Fixed _ ->
+                    Svg.g []
+                        [ Svg.text_
+                            [ S.x rightAlignPos, S.textAnchor "end", S.y hAvgLabel ]
+                            [ Svg.text avgString ]
+                        , Svg.line
+                            [ S.x1 "0", S.y1 hstrAvg, S.x2 wstr, S.y2 hstrAvg, S.stroke "black", S.opacity "0.35" ]
+                            []
+                        ]
+
+                _ ->
+                    Svg.g [] []
     in
     Svg.svg
         [ S.width wstr
@@ -193,8 +196,7 @@ draw ( width, height ) color p =
         ]
         [ Svg.line [ S.x1 "0", S.y1 hstrHalf, S.x2 wstr, S.y2 hstrHalf, S.stroke "black", S.opacity "0.25" ] []
         , Svg.polyline [ S.fill "none", S.stroke color, S.points coordString ] []
-
-        -- , avgLine
+        , avgLine
         , Svg.text_ [ S.x "0.3em", S.y "1em" ] [ Svg.text p.name ]
         , Svg.text_ [ S.x rightAlignPos, S.textAnchor "end", S.y "1em" ] [ Svg.text yMaxString ]
         , Svg.text_ [ S.x rightAlignPos, S.textAnchor "end", S.y bottomPos ] [ Svg.text yMinString ]
@@ -218,9 +220,39 @@ average : Array Float -> Float
 average arr =
     A.foldl (+) 0 arr / (toFloat <| A.length arr)
 
+
 cull : Array Float -> Array Float
 cull arr =
     arr
-        |> A.indexedMap (\i e -> if modBy 2 i == 0 then Just e else Nothing)
+        |> A.indexedMap
+            (\i e ->
+                if modBy 2 i == 0 then
+                    Just e
+
+                else
+                    Nothing
+            )
         |> A.filter (\x -> x /= Nothing)
         |> A.map (Maybe.withDefault 0)
+
+
+simpleRound : Int -> Float -> String
+simpleRound digits n =
+    let
+        sn =
+            String.fromFloat n
+
+        idx =
+            String.indices "." sn
+                |> List.head
+    in
+    case idx of
+        Just i ->
+            if digits == 0 then
+                String.left (i + digits) sn
+
+            else
+                String.left (i + 1 + digits) sn
+
+        Nothing ->
+            sn

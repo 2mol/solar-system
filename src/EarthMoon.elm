@@ -97,7 +97,7 @@ initModel =
     , fpsPlot = P.new "fps" |> P.setYRange (P.Fixed ( 0, 120 ))
     , kineticPlot = P.new "kinetic energy"
     , potentialPlot = P.new "potential energy"
-    , totalEnergyPlot = P.new "total energy" |> P.setXRange P.Accumulative-- |> P.setMaxPoints 1000
+    , totalEnergyPlot = P.new "total energy" |> P.setXRange P.Accumulative -- |> P.setMaxPoints 1000
     }
 
 
