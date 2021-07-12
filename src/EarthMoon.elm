@@ -7,7 +7,6 @@ import Geometry.Svg as Svg
 import Html exposing (Html)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
-import Json.Decode as Decode
 import Length exposing (Meters)
 import Point2d exposing (Point2d)
 import Quantity exposing (Quantity(..))
@@ -20,7 +19,7 @@ import Vector2d exposing (Vector2d)
 
 main : Program () Model Msg
 main =
-    Browser.document
+    Browser.element
         { init = \_ -> init
         , view = view
         , update = update
@@ -181,103 +180,80 @@ update msg ({ earth, moon, trail, projection, fpsPlot, kineticPlot, potentialPlo
             ( { model | projection = projection_ }, Cmd.none )
 
 
-view : Model -> Browser.Document Msg
+view : Model -> Html Msg
 view model =
     let
         plots =
             [ P.draw ( 750, 80 ) "#0074D9" model.kineticPlot
-            , P.draw ( 750, 80 ) "#FFDC00" model.potentialPlot
-            , P.draw ( 750, 80 ) "#2ECC40" model.totalEnergyPlot
-            , P.draw ( 750, 80 ) "#FF4136" model.fpsPlot
+
+            -- , P.draw ( 750, 80 ) "#FFDC00" model.potentialPlot
+            -- , P.draw ( 750, 80 ) "#2ECC40" model.totalEnergyPlot
+            -- , P.draw ( 750, 80 ) "#FF4136" model.fpsPlot
             ]
                 |> List.map (\e -> Html.div [ style "width" "97%" ] [ e ])
     in
-    { title = "Solar"
-    , body =
-        [ Html.div
-            [ style "display" "flex"
+    Html.div
+        [ style "display" "flex"
+        , style "flex-direction" "column"
+        , style "align-items" "center"
+        ]
+        [ Html.div [ style "width" "100%" ] [ drawing model ]
+        , Html.div
+            [ style "margin" "1em"
+
+            -- , style "width" "28em"
+            ]
+            [ -- , Html.button [ onClick <| Act Reset ] [ Html.text "reset" ]
+              -- , Html.text " - "
+              Html.button
+                [ onClick <| Act StartPause
+                , style "width" "6em"
+                , style "height" "2em"
+                , style "margin-right" "0.3em"
+                , style "border" "none"
+                , style "color" "white"
+                , style "background-color" "#647091"
+                , style "box-shadow" "inset 0 -0.6em 0 -0.35em rgba(0,0,0,0.17)"
+                ]
+                [ Html.text "play/pause" ]
+            , Html.button
+                [ onClick <| Act Brake
+                , style "width" "6em"
+                , style "height" "2em"
+                , style "border" "none"
+                , style "color" "white"
+                , style "background-color" "#f02b80"
+                , style "box-shadow" "inset 0 -0.6em 0 -0.35em rgba(0,0,0,0.17)"
+                ]
+                [ Html.text "brake" ]
+            , Html.button
+                [ onClick <| Act Faster
+                , style "width" "6em"
+                , style "height" "2em"
+                , style "border" "none"
+                , style "color" "white"
+                , style "background-color" "#00d173"
+                , style "box-shadow" "inset 0 -0.6em 0 -0.35em rgba(0,0,0,0.17)"
+                ]
+                [ Html.text "accelerate" ]
+            ]
+        , Html.div
+            [ style "width" "100%"
+            , style "display" "flex"
             , style "flex-direction" "column"
             , style "align-items" "center"
             ]
-            [ Html.div [ style "width" "100%" ] [ drawing model ]
-            , Html.div
-                [ style "margin" "1em"
-
-                -- , style "width" "28em"
-                ]
-                [ -- , Html.button [ onClick <| Act Reset ] [ Html.text "reset" ]
-                  -- , Html.text " - "
-                  Html.button
-                    [ onClick <| Act StartPause
-                    , style "width" "10em"
-                    , style "height" "2.5em"
-                    , style "margin-right" "0.3em"
-                    , style "border" "none"
-                    , style "color" "white"
-                    , style "font-weight" "bold"
-                    , style "font-family" "monospace"
-                    , style "background-color" "#647091"
-                    , style "box-shadow" "inset 0 -0.6em 0 -0.35em rgba(0,0,0,0.17)"
-                    ]
-                    [ Html.text "play/pause" ]
-                , Html.button
-                    [ onClick <| Act Brake
-                    , style "width" "10em"
-                    , style "height" "2.5em"
-                    , style "border" "none"
-                    , style "color" "white"
-                    , style "font-weight" "bold"
-                    , style "font-family" "monospace"
-                    , style "background-color" "#f02b80"
-                    , style "box-shadow" "inset 0 -0.6em 0 -0.35em rgba(0,0,0,0.17)"
-                    ]
-                    [ Html.text "brake" ]
-                , Html.button
-                    [ onClick <| Act Faster
-                    , style "width" "10em"
-                    , style "height" "2.5em"
-                    , style "border" "none"
-                    , style "color" "white"
-                    , style "font-weight" "bold"
-                    , style "font-family" "monospace"
-                    , style "background-color" "#00d173"
-                    , style "box-shadow" "inset 0 -0.6em 0 -0.35em rgba(0,0,0,0.17)"
-                    ]
-                    [ Html.text "accelerate" ]
-                ]
-            , Html.div
-                [ style "width" "100%"
-                , style "display" "flex"
-                , style "flex-direction" "column"
-                , style "align-items" "center"
-                ]
-                plots
-            ]
+            plots
         ]
-    }
-
-
-keyDecoder : Decode.Decoder Msg
-keyDecoder =
-    Decode.field "key" Decode.string
-        |> Decode.map KeyPress
 
 
 subscriptions : Model -> Sub Msg
 subscriptions { runState } =
-    let
-        tick =
-            if runState == Paused then
-                Sub.none
+    if runState == Paused then
+        Sub.none
 
-            else
-                Browser.onAnimationFrameDelta Tick
-    in
-    Sub.batch [ tick, Browser.onKeyPress keyDecoder ]
-
-
-
---
+    else
+        Browser.onAnimationFrameDelta Tick
 
 
 handleAction : Action -> Model -> ( Model, Cmd msg )
