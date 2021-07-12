@@ -8,8 +8,10 @@ import Html exposing (Html)
 import Html.Attributes exposing (style)
 import Html.Events exposing (on, onClick)
 import Json.Decode as Decode
+import Length exposing (Meters)
 import Plane3d
 import Point2d exposing (Point2d)
+import Quantity exposing (Unitless)
 import Round
 import String
 import Svg exposing (Svg)
@@ -32,7 +34,7 @@ type alias Model =
     { runState : RunState
     , earth : Body
     , moon : Body
-    , trail : List Point2d
+    , trail : List (Point2d Meters ())
     , projection : Projection
     , fpsPlot : TinyPlot
     , kineticPlot : TinyPlot
@@ -43,8 +45,8 @@ type alias Model =
 
 type alias Body =
     { mass : Mass
-    , position : Point2d
-    , velocity : Vector2d
+    , position : Point2d Meters ()
+    , velocity : Vector2d Meters ()
     , radius : Float
     , atmosphere : Float
     }
@@ -55,7 +57,7 @@ type alias Mass =
 
 
 type alias Projection =
-    { center : Point2d
+    { center : Point2d Meters ()
     , scale : Float
     }
 
@@ -91,7 +93,7 @@ initModel =
     , moon = initMoon
     , trail = []
     , projection =
-        { center = Point2d.fromCoordinates ( 0, 0 )
+        { center = Point2d.meters 0 0
         , scale = 7.0e-7
         }
     , fpsPlot = P.new "fps" |> P.setYRange (P.Fixed ( 0, 120 ))
@@ -104,8 +106,8 @@ initModel =
 initEarth : Body
 initEarth =
     { mass = 5.9722e24
-    , position = Point2d.fromCoordinates ( 0, 0 )
-    , velocity = Vector2d.fromComponents ( 0, 0 )
+    , position = Point2d.meters 0 0
+    , velocity = Vector2d.meters 0 0
     , radius = 6371000
     , atmosphere = 0.05
     }
@@ -114,8 +116,8 @@ initEarth =
 initMoon : Body
 initMoon =
     { mass = 7.34767309e22
-    , position = Point2d.fromCoordinates ( 384400000, 0 )
-    , velocity = Vector2d.fromComponents ( 0, 1000 )
+    , position = Point2d.meters 384400000 0
+    , velocity = Vector2d.meters 0 1000
     , radius = 1737000
     , atmosphere = 0
     }
@@ -295,30 +297,29 @@ euler : Float -> Body -> Body -> Body
 euler dt fixedBody movingBody =
     let
         ( x, y ) =
-            Point2d.coordinates movingBody.position
+            Point2d.coordinates movingBody.position |> Tuple.mapBoth Length.inMeters Length.inMeters
 
         ( u, v ) =
-            Vector2d.components movingBody.velocity
+            Vector2d.components movingBody.velocity |> Tuple.mapBoth Length.inMeters Length.inMeters
 
         r =
-            Point2d.squaredDistanceFrom
+            Point2d.distanceFrom
                 fixedBody.position
                 movingBody.position
+                |> (\dist -> Length.inMeters dist ^ 2)
 
         quot =
             dt * constG * fixedBody.mass / r ^ (3 / 2)
 
         newPosition =
-            Point2d.fromCoordinates
-                ( x + u * dt
-                , y + v * dt
-                )
+            Point2d.meters
+                (x + u * dt)
+                (y + v * dt)
 
         newVelocity =
-            Vector2d.fromComponents
-                ( u - x * quot
-                , v - y * quot
-                )
+            Vector2d.meters
+                (u - x * quot)
+                (v - y * quot)
     in
     { movingBody
         | position = newPosition
@@ -335,8 +336,12 @@ kineticEnergy fixBody movBody =
     let
         mu =
             1 / (1 / fixBody.mass + 1 / movBody.mass)
+
+        velocity =
+            Vector2d.length movBody.velocity |> Length.inMeters
     in
-    0.5 * movBody.mass * Vector2d.squaredLength movBody.velocity
+    (0.5 * movBody.mass * velocity)
+        |> (\len -> len ^ 2)
 
 
 potentialEnergy : Body -> Body -> Float
@@ -344,6 +349,7 @@ potentialEnergy body1 body2 =
     let
         r =
             Point2d.distanceFrom body1.position body2.position
+                |> Length.inMeters
     in
     -constG * body1.mass * body2.mass / r
 
@@ -380,23 +386,23 @@ drawBody { center, scale } { mass, position, radius, atmosphere } =
         atmocircle =
             if atmosphere /= 0 then
                 [ Svg.circle2d [ SvgA.fill "#adc5ed", SvgA.opacity "0.35" ]
-                    (Circle2d.withRadius (scaledRadius + 20) scaledPosition)
+                    (Circle2d.withRadius (scaledRadius + 20 |> Length.meters) scaledPosition)
                 ]
 
             else
                 [ Svg.circle2d [ SvgA.fill "#fff200", SvgA.opacity "0.35" ]
-                    (Circle2d.withRadius (scaledRadius + 10) scaledPosition)
+                    (Circle2d.withRadius (scaledRadius + 10 |> Length.meters) scaledPosition)
                 ]
     in
     Svg.g []
         (atmocircle
             ++ [ Svg.circle2d [ SvgA.fill "#666" ]
-                    (Circle2d.withRadius scaledRadius scaledPosition)
+                    (Circle2d.withRadius (Length.meters scaledRadius) scaledPosition)
                ]
         )
 
 
-drawTrail : Projection -> Point2d -> Svg msg
+drawTrail : Projection -> Point2d Meters () -> Svg msg
 drawTrail { center, scale } position =
     let
         scaledPosition =
@@ -405,11 +411,11 @@ drawTrail { center, scale } position =
     in
     Svg.g []
         [ Svg.circle2d [ SvgA.fill "#fff" ]
-            (Circle2d.withRadius 2 scaledPosition)
+            (Circle2d.withRadius (Length.meters 2) scaledPosition)
         ]
 
 
-drawTrailFast : Projection -> List Point2d -> Svg msg
+drawTrailFast : Projection -> List (Point2d Meters ()) -> Svg msg
 drawTrailFast { center, scale } positions =
     let
         scaledPositions =
@@ -418,7 +424,8 @@ drawTrailFast { center, scale } positions =
                 |> List.map Point2d.coordinates
 
         coordString =
-            List.map (\( x, y ) -> String.fromFloat x ++ "," ++ String.fromFloat y) scaledPositions
+            scaledPositions
+                |> List.map (\( Quantity.Quantity x, Quantity.Quantity y ) -> String.fromFloat x ++ "," ++ String.fromFloat y)
                 |> String.join " "
     in
     Svg.polyline [ SvgA.fill "none", SvgA.stroke "white", SvgA.strokeWidth "2", SvgA.points coordString ] []
