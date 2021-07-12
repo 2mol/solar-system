@@ -14,9 +14,9 @@ module TinyPlot exposing
 
 import Array as A exposing (Array)
 import Html exposing (Html)
-import Html.Attributes as HtmlA exposing (style)
+import Html.Attributes exposing (style)
 import Maybe
-import Svg exposing (Svg)
+import Svg
 import Svg.Attributes as S
 
 
@@ -162,10 +162,10 @@ draw ( width, height ) color p =
             String.fromInt (width - 2)
 
         yMinString =
-            String.fromFloat yMin
+            String.fromFloat yMin |> fixScientificRound 2
 
         yMaxString =
-            String.fromFloat yMax
+            String.fromFloat yMax |> fixScientificRound 2
 
         bottomPos =
             String.fromInt <| height - 4
@@ -256,3 +256,20 @@ simpleRound digits n =
 
         Nothing ->
             sn
+
+
+fixScientificRound : Int -> String -> String
+fixScientificRound nDigits floatStr =
+    if String.contains "." floatStr && String.contains "e+" floatStr then
+        case String.split "." floatStr |> List.concatMap (String.split "e+") of
+            x1 :: x2 :: x3 :: [] ->
+                x2
+                    |> String.left nDigits
+                    |> String.padRight nDigits '0'
+                    |> (\str -> x1 ++ "." ++ str ++ "e+" ++ x3)
+
+            _ ->
+                floatStr
+
+    else
+        floatStr
