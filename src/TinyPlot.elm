@@ -187,12 +187,14 @@ draw ( width, height ) color p =
                     Svg.g [] []
     in
     Svg.svg
-        [ S.width wstr
-        , S.height hstr
+        [ style "border" "1px solid black"
         , S.viewBox viewBox
-        , style "border" "1px solid black"
+
+        -- , S.width wstr
+        -- , S.height hstr
         , S.fontFamily "Courier New"
         , S.fontSize "12"
+        , S.preserveAspectRatio "xMinYMin meet"
         ]
         [ Svg.line [ S.x1 "0", S.y1 hstrHalf, S.x2 wstr, S.y2 hstrHalf, S.stroke "black", S.opacity "0.25" ] []
         , Svg.polyline [ S.fill "none", S.stroke color, S.points coordString ] []

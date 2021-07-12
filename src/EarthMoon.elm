@@ -97,7 +97,7 @@ initModel =
     , fpsPlot = P.new "fps" |> P.setYRange (P.Fixed ( 0, 120 ))
     , kineticPlot = P.new "kinetic energy"
     , potentialPlot = P.new "potential energy"
-    , totalEnergyPlot = P.new "total energy" |> P.setXRange P.Accumulative -- |> P.setMaxPoints 1000
+    , totalEnergyPlot = P.new "total energy" -- |> P.setXRange P.Accumulative |> P.setMaxPoints 1000
     }
 
 
@@ -190,15 +190,7 @@ view model =
             , P.draw ( 750, 80 ) "#2ECC40" model.totalEnergyPlot
             , P.draw ( 750, 80 ) "#FF4136" model.fpsPlot
             ]
-                |> List.map (\e -> Html.div [] [ e ])
-
-        buttons =
-            [ Html.button [ onClick <| Act StartPause ] [ Html.text "play/pause" ]
-            , Html.button [ onClick <| Act Reset ] [ Html.text "reset" ]
-            , Html.text " - "
-            , Html.button [ onClick <| Act Brake ] [ Html.text "brake" ]
-            , Html.button [ onClick <| Act Faster ] [ Html.text "faster" ]
-            ]
+                |> List.map (\e -> Html.div [ style "width" "97%" ] [ e ])
     in
     { title = "Solar"
     , body =
@@ -207,9 +199,59 @@ view model =
             , style "flex-direction" "column"
             , style "align-items" "center"
             ]
-            [ drawing model
-            , Html.div [ style "margin" "0.4em" ] buttons
-            , Html.div [] plots
+            [ Html.div [ style "width" "100%" ] [ drawing model ]
+            , Html.div
+                [ style "margin" "1em"
+
+                -- , style "width" "28em"
+                ]
+                [ -- , Html.button [ onClick <| Act Reset ] [ Html.text "reset" ]
+                  -- , Html.text " - "
+                  Html.button
+                    [ onClick <| Act StartPause
+                    , style "width" "10em"
+                    , style "height" "2.5em"
+                    , style "margin-right" "0.3em"
+                    , style "border" "none"
+                    , style "color" "white"
+                    , style "font-weight" "bold"
+                    , style "font-family" "monospace"
+                    , style "background-color" "#647091"
+                    , style "box-shadow" "inset 0 -0.6em 0 -0.35em rgba(0,0,0,0.17)"
+                    ]
+                    [ Html.text "play/pause" ]
+                , Html.button
+                    [ onClick <| Act Brake
+                    , style "width" "10em"
+                    , style "height" "2.5em"
+                    , style "border" "none"
+                    , style "color" "white"
+                    , style "font-weight" "bold"
+                    , style "font-family" "monospace"
+                    , style "background-color" "#f02b80"
+                    , style "box-shadow" "inset 0 -0.6em 0 -0.35em rgba(0,0,0,0.17)"
+                    ]
+                    [ Html.text "brake" ]
+                , Html.button
+                    [ onClick <| Act Faster
+                    , style "width" "10em"
+                    , style "height" "2.5em"
+                    , style "border" "none"
+                    , style "color" "white"
+                    , style "font-weight" "bold"
+                    , style "font-family" "monospace"
+                    , style "background-color" "#00d173"
+                    , style "box-shadow" "inset 0 -0.6em 0 -0.35em rgba(0,0,0,0.17)"
+                    ]
+                    [ Html.text "accelerate" ]
+                ]
+            , Html.div
+                [ style "width" "100%"
+                , style "display" "flex"
+                , style "flex-direction" "column"
+                , style "align-items" "center"
+                ]
+                plots
             ]
         ]
     }
@@ -350,8 +392,11 @@ drawing { earth, moon, trail, projection } =
             ]
     in
     Svg.svg
-        [ SvgA.width "1000", SvgA.height "600", SvgA.viewBox "-500 -300 1000 600" ]
-        --, onWheel Zoom ]
+        [ SvgA.viewBox "-500 -300 1000 600"
+
+        -- , SvgA.width "1000"
+        -- , SvgA.height "600"
+        ]
         everything
 
 
