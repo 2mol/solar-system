@@ -6,13 +6,11 @@ import Circle2d
 import Geometry.Svg as Svg
 import Html exposing (Html)
 import Html.Attributes exposing (style)
-import Html.Events exposing (on, onClick)
+import Html.Events exposing (onClick)
 import Json.Decode as Decode
 import Length exposing (Meters)
-import Plane3d
 import Point2d exposing (Point2d)
-import Quantity exposing (Unitless)
-import Round
+import Quantity exposing (Quantity(..))
 import String
 import Svg exposing (Svg)
 import Svg.Attributes as SvgA
@@ -124,7 +122,7 @@ initMoon =
 
 
 update : Msg -> Model -> ( Model, Cmd msg )
-update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, potentialPlot, totalEnergyPlot } as model) =
+update msg ({ earth, moon, trail, projection, fpsPlot, kineticPlot, potentialPlot, totalEnergyPlot } as model) =
     case msg of
         Tick dt ->
             let
@@ -141,7 +139,7 @@ update msg ({ runState, earth, moon, trail, projection, fpsPlot, kineticPlot, po
                     1000 / dt
 
                 kinetic =
-                    kineticEnergy earth moon
+                    kineticEnergy moon
 
                 potential =
                     potentialEnergy moon earth
@@ -241,7 +239,7 @@ subscriptions { runState } =
 
 
 handleAction : Action -> Model -> ( Model, Cmd msg )
-handleAction act ({ runState, earth, moon } as model) =
+handleAction act ({ runState, moon } as model) =
     case act of
         StartPause ->
             ( { model | runState = toggleRunState runState }, Cmd.none )
@@ -268,11 +266,6 @@ toggleRunState runState =
 
         Running ->
             Paused
-
-
-onWheel : (Int -> msg) -> Html.Attribute msg
-onWheel message =
-    on "wheel" (Decode.map message (Decode.at [ "deltaY" ] Decode.int))
 
 
 
@@ -327,21 +320,13 @@ euler dt fixedBody movingBody =
     }
 
 
-rungeKutta4 dt pos vel =
-    0
-
-
-kineticEnergy : Body -> Body -> Float
-kineticEnergy fixBody movBody =
+kineticEnergy : Body -> Float
+kineticEnergy movBody =
     let
-        mu =
-            1 / (1 / fixBody.mass + 1 / movBody.mass)
-
         velocity =
             Vector2d.length movBody.velocity |> Length.inMeters
     in
-    (0.5 * movBody.mass * velocity)
-        |> (\len -> len ^ 2)
+    (0.5 * movBody.mass * velocity) ^ 2
 
 
 potentialEnergy : Body -> Body -> Float
@@ -358,10 +343,11 @@ drawing : Model -> Html Msg
 drawing { earth, moon, trail, projection } =
     let
         everything =
-            [ Svg.rect [ SvgA.x "-500", SvgA.y "-300", SvgA.width "100%", SvgA.height "100%", SvgA.fill "#f7f7f7" ] [] ]
-                -- ++ List.map (drawTrail projection) trail
-                ++ [ drawTrailFast projection trail ]
-                ++ [ drawBody projection earth, drawBody projection moon ]
+            [ Svg.rect [ SvgA.x "-500", SvgA.y "-300", SvgA.width "100%", SvgA.height "100%", SvgA.fill "#f7f7f7" ] []
+            , drawTrailFast projection trail
+            , drawBody projection earth
+            , drawBody projection moon
+            ]
     in
     Svg.svg
         [ SvgA.width "1000", SvgA.height "600", SvgA.viewBox "-500 -300 1000 600" ]
@@ -374,7 +360,7 @@ drawing { earth, moon, trail, projection } =
 
 
 drawBody : Projection -> Body -> Svg msg
-drawBody { center, scale } { mass, position, radius, atmosphere } =
+drawBody { center, scale } { position, radius, atmosphere } =
     let
         scaledRadius =
             radius * scale
@@ -402,19 +388,6 @@ drawBody { center, scale } { mass, position, radius, atmosphere } =
         )
 
 
-drawTrail : Projection -> Point2d Meters () -> Svg msg
-drawTrail { center, scale } position =
-    let
-        scaledPosition =
-            position
-                |> Point2d.scaleAbout center scale
-    in
-    Svg.g []
-        [ Svg.circle2d [ SvgA.fill "#fff" ]
-            (Circle2d.withRadius (Length.meters 2) scaledPosition)
-        ]
-
-
 drawTrailFast : Projection -> List (Point2d Meters ()) -> Svg msg
 drawTrailFast { center, scale } positions =
     let
@@ -425,7 +398,7 @@ drawTrailFast { center, scale } positions =
 
         coordString =
             scaledPositions
-                |> List.map (\( Quantity.Quantity x, Quantity.Quantity y ) -> String.fromFloat x ++ "," ++ String.fromFloat y)
+                |> List.map (\( Quantity x, Quantity y ) -> String.fromFloat x ++ "," ++ String.fromFloat y)
                 |> String.join " "
     in
     Svg.polyline [ SvgA.fill "none", SvgA.stroke "white", SvgA.strokeWidth "2", SvgA.points coordString ] []
